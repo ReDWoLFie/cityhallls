@@ -11,7 +11,6 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* Базовые стили — текущая тема (бежево-серая) */
         body {
             font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
             background: #2c2f33;
@@ -20,7 +19,6 @@
             transition: all 0.3s ease;
         }
         
-        /* Тема 2 — классическая GTA (тёмно-синяя с оранжевым) */
         body.theme-gta {
             background: #0f1724;
             color: #e2e8f0;
@@ -819,7 +817,7 @@
             <button class="nav-btn" data-section="employees">👥 Сотрудники</button>
             <button id="themeToggle" class="theme-btn">🎨 Тема</button>
             <div id="authArea">
-                <button id="adminQuickBtn" class="nav-btn" style="background: linear-gradient(135deg, #c9a87b, #a8845a); color: white;">👑 Админ-панель</button>
+                <button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>
             </div>
         </div>
     </div>
@@ -1045,6 +1043,15 @@
     </div>
 </div>
 
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <h3>🔐 Вход для администратора</h3>
+        <input type="password" id="adminPassword" placeholder="Введите пароль">
+        <button id="confirmLogin">Войти</button>
+        <button id="closeModal" style="background: #e2e8f0; margin-top: 0.5rem;">Отмена</button>
+    </div>
+</div>
+
 <script>
     // ========== ТЕМА ==========
     function initTheme() {
@@ -1081,6 +1088,17 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // Хэш пароля "admin"
+    const ADMIN_PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     const infoTexts = {
         businessOwner: `<h3>🏪 Правила ведения бизнесов</h3><p><strong>1.</strong> Открываться не менее двух раз в неделю.</p><p><strong>2.</strong> В неделю бизнес должен быть открыт не менее 6 часов.</p><p><strong>3.</strong> Подача отчёта в Экономический отдел Мэрии обязательна в конце недели — не позднее понедельника, включая воскресенье. Премия будет вручена пяти наиболее активным бизнесам по итогам рассмотрения отчётов.</p><p><strong>4.</strong> Обязательное ведение социальных сетей – instapic или birdy.</p><p><strong>5.</strong> Переоформление бизнеса на другого человека составляет 5% от первоначальной стоимости бизнеса.</p><p><strong>6.</strong> В любой момент Экономический отдел может провести проверку бизнеса, согласно Законодательству штата.</p><p><strong>Ответственность за нарушения:</strong> В случае нарушения одного из пунктов заведению будет вынесено сначала предупреждение, на второй раз штраф в 25% от стоимости бизнеса, после изымается в руки государству.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`,
@@ -1424,18 +1442,25 @@
         } else {
             body.classList.remove('admin-mode');
             const authArea = document.getElementById("authArea");
-            authArea.innerHTML = `<button id="adminQuickBtn" class="nav-btn" style="background: linear-gradient(135deg, #c9a87b, #a8845a); color: white;">👑 Админ-панель</button>`;
-            document.getElementById("adminQuickBtn")?.addEventListener("click", () => setAdminMode(true));
+            authArea.innerHTML = `<button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>`;
+            document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
             if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
             renderAll();
         }
     }
 
-    function setupAdminButton() {
-        const btn = document.getElementById("adminQuickBtn");
-        if (btn) {
-            btn.addEventListener("click", () => setAdminMode(true));
-        }
+    function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
+    function hideLoginModal() { document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; }
+    
+    async function checkAdminLogin() { 
+        const pass = document.getElementById("adminPassword").value; 
+        const hashedPass = await hashPassword(pass);
+        if (hashedPass === ADMIN_PASSWORD_HASH) { 
+            setAdminMode(true); 
+            hideLoginModal(); 
+        } else { 
+            alert("Неверный пароль!"); 
+        } 
     }
 
     function setupForms() {
@@ -1470,6 +1495,11 @@
         else setActiveSection("home");
     }
 
+    function initEnterLogin() {
+        const passwordInput = document.getElementById("adminPassword");
+        if(passwordInput) { passwordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkAdminLogin(); }); }
+    }
+
     setupRealtimeListeners();
     loadAllData();
     setupForms();
@@ -1480,10 +1510,14 @@
     initChangeEmployeePhotoModal();
     initAddBusinessModal();
     initMeetingForm();
+    initEnterLogin();
     initFilters();
     initTheme();
     loadAdminStatus();
-    setupAdminButton();
+    document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
+    document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
+    document.getElementById("closeModal")?.addEventListener("click", hideLoginModal);
+    window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) hideLoginModal(); });
 </script>
 </body>
 </html>
