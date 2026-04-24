@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Мэрия Лос-Сантоса | Project Bloodlines</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Базовые стили — текущая тема (бежево-серая) */
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: #2c2f33;
+            color: #1a1f2e;
+            scroll-behavior: smooth;
+            transition: all 0.3s ease;
+        }
+        
+        /* Тема 2 — классическая GTA (тёмно-синяя с оранжевым) */
+        body.theme-gta {
+            background: #0f1724;
+            color: #e2e8f0;
+        }
+        
+        body.theme-gta .header {
+            background: rgba(15, 23, 36, 0.95);
+            border-bottom: 1px solid #f59e0b30;
+        }
+        
+        body.theme-gta .logo span {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        
+        body.theme-gta .nav-btn {
+            color: #94a3b8;
+        }
+        
+        body.theme-gta .nav-btn.active, body.theme-gta .nav-btn:hover {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #0f1724;
+            box-shadow: 0 0 12px #f59e0b80;
+        }
+        
+        body.theme-gta .card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+        
+        body.theme-gta .card:hover {
+            border-color: #f59e0b60;
+        }
+        
+        body.theme-gta h2 {
+            border-left-color: #f59e0b;
+            color: #f59e0b;
+        }
+        
+        body.theme-gta h3 {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .law-item, body.theme-gta .info-item, 
+        body.theme-gta .business-card, body.theme-gta .review-item,
+        body.theme-gta .meeting-item, body.theme-gta .news-item,
+        body.theme-gta .add-news-form, body.theme-gta .add-employee-form,
+        body.theme-gta .add-doc-form {
+            background: #0f1724;
+            border-color: #334155;
+        }
+        
+        /* Пустые состояния в теме GTA */
+        body.theme-gta .news-list > .news-item:first-child:last-child,
+        body.theme-gta .documents-list > .doc-item:first-child:last-child,
+        body.theme-gta .reviews-list > .review-item:first-child:last-child,
+        body.theme-gta .meetings-list > .meeting-item:first-child:last-child,
+        body.theme-gta .employees-grid > .employee-card:first-child:last-child {
+            background: #0f1724;
+            border-color: #334155;
+            color: #94a3b8;
+            text-align: center;
+        }
+        
+        body.theme-gta .employees-grid .employee-card {
+            background: #0f1724;
+            border-color: #334155;
+        }
+        
+        body.theme-gta .employee-card:hover {
+            border-color: #f59e0b60;
+        }
+        
+        body.theme-gta .employee-photo {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+        }
+        
+        body.theme-gta .employee-photo .default-icon {
+            color: #64748b;
+        }
+        
+        body.theme-gta .employee-name {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .employee-position {
+            color: #94a3b8;
+        }
+        
+        body.theme-gta .change-employee-photo {
+            background: rgba(0,0,0,0.8);
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .change-employee-photo:hover {
+            background: rgba(0,0,0,0.95);
+            color: #fbbf24;
+        }
+        
+        body.theme-gta .delete-employee {
+            background: #dc2626;
+        }
+        
+        body.theme-gta .delete-employee:hover {
+            background: #b91c1c;
+        }
+        
+        body.theme-gta .law-link, body.theme-gta .info-link {
+            color: #e2e8f0;
+        }
+        
+        body.theme-gta .law-link:hover, body.theme-gta .info-link:hover {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .rent-badge, body.theme-gta .external-icon {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .business-address, body.theme-gta .review-date,
+        body.theme-gta .news-date, body.theme-gta .doc-date {
+            color: #94a3b8;
+        }
+        
+        body.theme-gta .business-info h3, body.theme-gta .review-name,
+        body.theme-gta .meeting-header .review-name, body.theme-gta .news-title,
+        body.theme-gta .doc-title {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .review-content p, body.theme-gta .news-text,
+        body.theme-gta .doc-text, body.theme-gta .meeting-item div:not(.meeting-header):not(.meeting-actions) {
+            color: #cbd5e6;
+        }
+        
+        body.theme-gta .card p, body.theme-gta .card li {
+            color: #cbd5e6;
+        }
+        
+        body.theme-gta .filter-label {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .filter-btn {
+            background: #0f1724;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        
+        body.theme-gta .filter-btn.active {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #0f1724;
+        }
+        
+        body.theme-gta .filter-btn:hover {
+            background: #f59e0b20;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .business-img {
+            background-color: #1e293b;
+        }
+        
+        body.theme-gta .news-image, body.theme-gta .doc-image {
+            background-color: #1e293b;
+        }
+        
+        body.theme-gta .add-news-form, body.theme-gta .add-doc-form,
+        body.theme-gta .add-employee-form {
+            background: #0f1724;
+            border-color: #334155;
+        }
+        
+        body.theme-gta input, body.theme-gta textarea, body.theme-gta select {
+            background: #0f1724;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        
+        body.theme-gta input::placeholder, body.theme-gta textarea::placeholder {
+            color: #64748b;
+        }
+        
+        body.theme-gta .image-preview {
+            background-color: #1e293b;
+            border-radius: 12px;
+        }
+        
+        body.theme-gta button {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #0f1724;
+        }
+        
+        body.theme-gta button:hover {
+            background: linear-gradient(135deg, #fbbf24, #f97316);
+        }
+        
+        body.theme-gta .status-select {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-color: #f59e0b;
+        }
+        
+        body.theme-gta .status-free { background: #059669; color: #fff; }
+        body.theme-gta .status-occupied { background: #dc2626; color: #fff; }
+        body.theme-gta .status-pending { background: #f59e0b; color: #0f1724; }
+        
+        body.theme-gta .delete-business-btn, body.theme-gta .delete-review,
+        body.theme-gta .delete-news, body.theme-gta .delete-doc,
+        body.theme-gta .delete-employee, body.theme-gta .delete-finished-btn {
+            background: #dc2626;
+        }
+        
+        body.theme-gta .delete-business-btn:hover, body.theme-gta .delete-review:hover,
+        body.theme-gta .delete-news:hover, body.theme-gta .delete-doc:hover,
+        body.theme-gta .delete-employee:hover, body.theme-gta .delete-finished-btn:hover {
+            background: #b91c1c;
+        }
+        
+        body.theme-gta .price-modal-content, body.theme-gta .info-modal-content,
+        body.theme-gta .modal-content {
+            background: #1e293b;
+            border-color: #f59e0b;
+        }
+        
+        body.theme-gta .price-modal-content p, body.theme-gta .info-modal-content p {
+            color: #cbd5e6;
+        }
+        
+        body.theme-gta .price-modal-content h3, body.theme-gta .info-modal-content h3 {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .close-info-modal {
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .close-info-modal:hover {
+            color: #fbbf24;
+        }
+        
+        body.theme-gta footer {
+            border-top-color: #334155;
+            color: #64748b;
+        }
+        
+        body.theme-gta .business-type {
+            background: #f59e0b20;
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .change-image-btn {
+            background: rgba(0,0,0,0.7);
+            color: #f59e0b;
+        }
+        
+        body.theme-gta .change-image-btn:hover {
+            background: rgba(0,0,0,0.85);
+        }
+        
+        body.theme-gta ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        body.theme-gta ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+        }
+        
+        body.theme-gta .doc-item,
+        body.theme-gta .news-item,
+        body.theme-gta .review-item,
+        body.theme-gta .meeting-item {
+            background: #0f1724;
+            border-color: #334155;
+        }
+        
+        body.theme-gta .doc-item:hover,
+        body.theme-gta .news-item:hover,
+        body.theme-gta .review-item:hover,
+        body.theme-gta .meeting-item:hover {
+            border-color: #f59e0b60;
+        }
+        
+        body.theme-gta .empty-message {
+            color: #94a3b8;
+            background: #0f1724;
+            border: 1px solid #334155;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #40444b; }
+        ::-webkit-scrollbar-thumb { background: #c9a87b; border-radius: 4px; }
+        
+        .header {
+            background: rgba(44, 47, 51, 0.95);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #c9a87b30;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+        .nav {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-right: auto;
+        }
+        .logo span {
+            background: linear-gradient(135deg, #c9a87b, #a8845a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: #a0a5b0;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .nav-btn.active, .nav-btn:hover {
+            background: #c9a87b;
+            color: #2c2f33;
+            box-shadow: 0 0 12px #c9a87b80;
+        }
+        .theme-btn {
+            background: #40444b;
+            border: none;
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        .admin-panel {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            background: #40444b;
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+        }
+        .admin-badge { background: #9b2c2c; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; }
+        .admin-btn { background: #c9a87b; border: none; padding: 0.3rem 1rem; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .login-btn { background: #2f6b2f; color: white; }
+        .logout-btn { background: #9b2c2c; color: white; }
+        .container { max-width: 1600px; margin: 2rem auto; padding: 0 2rem 4rem; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .section.active-section { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .card:hover { border-color: #c9a87b; }
+        h2 { font-size: 1.8rem; margin-bottom: 1.5rem; border-left: 4px solid #c9a87b; padding-left: 1.2rem; color: #1a1f2e; }
+        h3 { font-size: 1.4rem; margin: 1rem 0 0.75rem; color: #a8845a; }
+        
+        .filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #a8845a;
+        }
+        .filter-btn {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1a1f2e;
+        }
+        .filter-btn.active {
+            background: #c9a87b;
+            border-color: #c9a87b;
+            color: #fff;
+        }
+        .filter-btn:hover {
+            background: #c9a87b20;
+            border-color: #c9a87b;
+        }
+        
+        .law-item, .info-item {
+            background: #f8f9fa;
+            margin-bottom: 1rem;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .law-item:hover, .info-item:hover { border-color: #c9a87b; transform: translateX(5px); }
+        .law-link, .info-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            color: #1a1f2e;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .law-link:hover, .info-link:hover { color: #a8845a; }
+        .external-icon { color: #c9a87b; font-size: 0.85rem; opacity: 0.8; }
+        .employees-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-top: 1rem; }
+        .employee-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+        .employee-card:hover { border-color: #c9a87b; transform: translateY(-5px); }
+        .employee-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .employee-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .employee-photo .default-icon { font-size: 4rem; color: #a0a5b0; }
+        .change-employee-photo {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: #c9a87b;
+            font-size: 0.7rem;
+            padding: 0.2rem;
+            cursor: pointer;
+            width: 100%;
+        }
+        .employee-name { font-size: 1.2rem; font-weight: 700; color: #1a1f2e; margin-bottom: 0.3rem; }
+        .employee-position { font-size: 0.85rem; color: #a8845a; }
+        .delete-employee { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
+        .add-employee-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+        .add-employee-form input { width: 100%; margin-bottom: 0.8rem; }
+        .info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .info-modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 95%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2rem;
+            border: 1px solid #c9a87b;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .info-modal-content h3 { margin-top: 0; color: #a8845a; }
+        .info-modal-content p { margin-bottom: 0.8rem; color: #1a1f2e; }
+        .close-info-modal {
+            position: sticky;
+            top: 0;
+            float: right;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #a8845a;
+            background: none;
+            border: none;
+        }
+        .price-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+        }
+        .price-modal-content {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            padding: 2rem;
+            border: 1px solid #c9a87b;
+        }
+        .price-modal-content input, .price-modal-content select {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        .price-modal-buttons { display: flex; gap: 1rem; justify-content: flex-end; }
+        .news-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .news-item { background: #f8f9fa; border-radius: 16px; padding: 1.2rem; border-left: 3px solid #c9a87b; }
+        .news-image { max-width: 100%; border-radius: 12px; margin: 0.8rem 0; max-height: 300px; object-fit: cover; }
+        .news-video { position: relative; padding-bottom: 56.25%; height: 0; margin: 0.8rem 0; border-radius: 12px; overflow: hidden; }
+        .news-video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+        .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; }
+        .news-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; }
+        .news-text { color: #1a1f2e; line-height: 1.5; }
+        .delete-news { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
+        .add-news-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+        .add-news-form input, .add-news-form textarea { width: 100%; margin-bottom: 0.8rem; }
+        .image-preview { max-width: 200px; max-height: 120px; margin: 0.5rem 0; border-radius: 12px; }
+        .documents-list { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem; }
+        .doc-item { background: #f8f9fa; border-radius: 16px; padding: 1.2rem; border-left: 3px solid #c9a87b; }
+        .doc-image { max-width: 100%; border-radius: 12px; margin: 0.8rem 0; max-height: 300px; object-fit: cover; }
+        .doc-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; }
+        .doc-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; }
+        .doc-text { color: #1a1f2e; line-height: 1.5; }
+        .delete-doc { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
+        .add-doc-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
+        .add-doc-form input, .add-doc-form textarea { width: 100%; margin-bottom: 0.8rem; }
+        .business-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; margin-top: 1rem; }
+        .business-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .delete-business-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #9b2c2c;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .delete-business-btn:hover {
+            background: #7a1f1f;
+            transform: scale(1.05);
+        }
+        .business-img {
+            width: 100%;
+            height: 170px;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            position: relative;
+        }
+        .business-img img { width: 100%; height: 100%; object-fit: cover; }
+        .change-image-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: #c9a87b;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .business-info { padding: 1.2rem; }
+        .business-info h3 { color: #1a1f2e; font-weight: 700; margin-bottom: 0.5rem; }
+        .business-address { color: #718096; font-size: 0.8rem; margin: 0.3rem 0; }
+        .business-type {
+            display: inline-block;
+            background: #c9a87b20;
+            color: #a8845a;
+            padding: 0.15rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-top: 0.3rem;
+        }
+        .rent-badge {
+            display: inline-block;
+            background: #c9a87b20;
+            color: #a8845a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+            width: fit-content;
+        }
+        .status-free { background: #2f6b2f; color: #fff; }
+        .status-occupied { background: #9b2c2c; color: #fff; }
+        .status-pending { background: #c9a87b; color: #2c2f33; }
+        .status-select {
+            margin-top: 0.75rem;
+            width: 100%;
+            padding: 0.5rem;
+            background: #ffffff;
+            border: 1px solid #c9a87b;
+            border-radius: 30px;
+            color: #1a1f2e;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .admin-only { display: none; }
+        body.admin-mode .admin-only { display: block; }
+        .feedback-form, .meeting-form { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        input, textarea, select {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 0.8rem 1rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: #1a1f2e;
+            font-family: inherit;
+        }
+        button {
+            background: #c9a87b;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c2f33;
+        }
+        button:hover { background: #d4bb94; box-shadow: 0 2px 8px rgba(201, 168, 123, 0.3); }
+        .reviews-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .review-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 16px;
+            border-left: 3px solid #c9a87b;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .review-name { font-weight: 700; color: #1a1f2e; font-size: 1rem; }
+        .review-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.3rem; }
+        .review-content p { color: #1a1f2e; line-height: 1.4; }
+        .delete-review { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-left: 1rem; }
+        .meetings-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .meeting-item { background: #f8f9fa; padding: 1rem; border-radius: 16px; border-left: 3px solid #c9a87b; }
+        .meeting-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+        .meeting-status {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .status-inwork { background: #2f6b2f; color: white; }
+        .status-accepted { background: #c9a87b; color: #2c2f33; }
+        .status-finished { background: #4a6a8a; color: white; }
+        .meeting-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; }
+        .status-btn {
+            background: #ffffff;
+            border: 1px solid #c9a87b;
+            color: #a8845a;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+        .status-btn:hover { background: #c9a87b; color: #2c2f33; }
+        .delete-finished-btn { background: #9b2c2c; border: none; color: white; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.65rem; cursor: pointer; }
+        .custom-topic-field { display: none; margin-top: 0.5rem; }
+        .custom-topic-field.visible { display: block; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #c9a87b;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 3rem;
+            color: #a0a5b0;
+            font-size: 0.85rem;
+        }
+        @media (max-width: 900px) {
+            .nav { flex-direction: column; }
+            .logo { margin-right: 0; }
+            .business-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+            .filters-bar { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="nav">
+        <div class="logo">
+            🏛️ <span>Мэрия Лос-Сантоса</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-section="home">🏠 Главная</button>
+            <button class="nav-btn" data-section="laws">📜 Законы</button>
+            <button class="nav-btn" data-section="business">🏢 Бизнесы</button>
+            <button class="nav-btn" data-section="feedback">💬 Отзывы</button>
+            <button class="nav-btn" data-section="meeting">📅 Запись на приём</button>
+            <button class="nav-btn" data-section="employees">👥 Сотрудники</button>
+            <button id="themeToggle" class="theme-btn">🎨 Тема</button>
+            <div id="authArea">
+                <button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="home" class="section active-section">
+        <div class="card">
+            <h2>Добро пожаловать в официальный портал мэрии</h2>
+            <p>Граждане Лос-Сантоса! Здесь вы можете ознакомиться с законами, подать заявку на аренду бизнеса, оставить отзыв о работе администрации или записаться на личный приём.</p>
+        </div>
+        <div class="card">
+            <h2>📰 Новости мэрии</h2>
+            <div id="newsContainer" class="news-list"></div>
+            <div id="adminNewsBlock" class="admin-only">
+                <div class="add-news-form">
+                    <h3>➕ Добавить новость</h3>
+                    <input type="text" id="newsTitle" placeholder="Заголовок новости">
+                    <textarea id="newsText" rows="3" placeholder="Текст новости..."></textarea>
+                    <input type="text" id="newsImageUrl" placeholder="Ссылка на картинку (опционально)">
+                    <input type="text" id="newsVideoUrl" placeholder="Ссылка на YouTube видео (опционально)">
+                    <div id="imagePreviewContainer"></div>
+                    <button id="submitNews">📰 Опубликовать новость</button>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3>📊 Статистика города</h3>
+            <ul>
+                <li>🏪 Всего бизнесов: <strong id="totalBusiness">0</strong></li>
+                <li>🟢 Доступно для аренды: <strong id="freeBusinessCount">0</strong></li>
+                <li>📝 Принято отзывов: <span id="reviewCount">0</span></li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>🔔 Последние объявления</h3>
+            <p>✨ Полные тексты законов доступны по ссылкам в разделе "Законы".</p>
+            <p>📋 Информация для владельцев бизнесов и малых предприятий — в разделе "Бизнесы".</p>
+            <p>🏆 Лучший бизнес месяца получит налоговые льготы.</p>
+        </div>
+    </div>
+
+    <div id="laws" class="section">
+        <div class="card">
+            <h2>📜 Законодательство штата Сан-Андреас</h2>
+            <div class="law-item"><a href="https://docs.google.com/document/d/1znuduX84bq8sDmU-rCUUYsSD84br0MttmHNyWRLR3pQ/edit?usp=sharing" target="_blank" class="law-link"><span>⚖️ Законодательная база штата</span><span class="external-icon">🔗 Открыть в Google Docs →</span></a></div>
+            <div class="law-item"><a href="https://docs.google.com/document/d/1lOJFco241O8ZV8Vb8bhodk9OxW0VUnchMjEnGF1PUcY/edit?usp=sharing" target="_blank" class="law-link"><span>📋 Процессуальный кодекс штата</span><span class="external-icon">🔗 Открыть в Google Docs →</span></a></div>
+            <div class="law-item"><a href="https://docs.google.com/document/d/1wB3cy28RijXaXmcjQIR-MIJCAZPktXJAjwG5FPWK3d0/edit?usp=sharing" target="_blank" class="law-link"><span>🔫 Контроль смертельного оружия в штате San Andreas</span><span class="external-icon">🔗 Открыть в Google Docs →</span></a></div>
+            <div class="law-item"><a href="https://docs.google.com/document/d/1Nm_UeYtYetW1beMqhrgaY7QEUTXDrDraNGLIoisTJsc/edit?usp=sharing" target="_blank" class="law-link"><span>✈️ Закон о контроле и безопасности воздушного пространства штата Сан-Андреас</span><span class="external-icon">🔗 Открыть в Google Docs →</span></a></div>
+        </div>
+        <div class="card">
+            <h2>📄 Документы и постановления</h2>
+            <div id="documentsContainer" class="documents-list"></div>
+            <div id="adminDocumentsBlock" class="admin-only">
+                <div class="add-doc-form">
+                    <h3>➕ Добавить документ/постановление</h3>
+                    <input type="text" id="docTitle" placeholder="Название документа">
+                    <textarea id="docText" rows="3" placeholder="Текст документа..."></textarea>
+                    <input type="text" id="docImageUrl" placeholder="Ссылка на картинку (опционально)">
+                    <div id="docImagePreviewContainer"></div>
+                    <button id="submitDoc">📄 Опубликовать документ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="business" class="section">
+        <div class="card">
+            <h2>📋 Информация для предпринимателей</h2>
+            <div class="info-item"><div class="info-link" data-info="businessOwner"><span>🏪 Информация для владельцев бизнесов</span><span class="external-icon">📖 Читать →</span></div></div>
+            <div class="info-item"><div class="info-link" data-info="smallBusiness"><span>🏢 Информация для малых частных предприятий</span><span class="external-icon">📖 Читать →</span></div></div>
+        </div>
+        <div class="card">
+            <div class="admin-only" style="margin-bottom: 1rem;"><button id="addBusinessBtn" style="background: #2f6b2f; color: white;">➕ Добавить бизнес</button></div>
+            <h2>🏢 Бизнесы и предприятия для аренды</h2>
+            
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <span class="filter-label">📊 Статус:</span>
+                    <button class="filter-btn status-filter active" data-status="all">Все</button>
+                    <button class="filter-btn status-filter" data-status="free">🟢 Свободен</button>
+                    <button class="filter-btn status-filter" data-status="occupied">🔴 Занят</button>
+                    <button class="filter-btn status-filter" data-status="pending">🟡 В обработке</button>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">🏷️ Тип:</span>
+                    <button class="filter-btn type-filter active" data-type="all">Все</button>
+                    <button class="filter-btn type-filter" data-type="СТО">🔧 СТО</button>
+                    <button class="filter-btn type-filter" data-type="Клуб">🎧 Клуб</button>
+                    <button class="filter-btn type-filter" data-type="Ресторан/Кафе">🍽️ Ресторан/Кафе</button>
+                    <button class="filter-btn type-filter" data-type="Остальное">🏪 Остальное</button>
+                </div>
+            </div>
+            
+            <div class="business-grid" id="businessGrid"></div>
+        </div>
+    </div>
+
+    <div id="feedback" class="section">
+        <div class="card">
+            <h2>💬 Оставить отзыв о работе мэрии</h2>
+            <div class="feedback-form">
+                <input type="text" id="fbName" placeholder="Ваше имя / позывной" value="Гражданин LS">
+                <textarea id="fbText" rows="3" placeholder="Напишите отзыв или пожелание..."></textarea>
+                <button id="submitFeedback">📨 Отправить отзыв</button>
+            </div>
+            <div id="reviewsContainer" class="reviews-list"></div>
+        </div>
+    </div>
+
+    <div id="meeting" class="section">
+        <div class="card">
+            <h2>📝 Запись на личный приём</h2>
+            <div class="meeting-form">
+                <input type="text" id="meetName" placeholder="Ваше имя / позывной">
+                <input type="tel" id="meetPhone" placeholder="Номер телефона (10 цифр)" maxlength="10" pattern="\\d{10}">
+                <input type="text" id="meetCardId" placeholder="ID карта">
+                <select id="meetTopic">
+                    <option value="Бизнес-вопрос">Бизнес-вопрос</option>
+                    <option value="Жалоба">Жалоба на действия госслужащих</option>
+                    <option value="Земля/недвижимость">Вопрос по недвижимости</option>
+                    <option value="Законодательство">Вопрос по законодательству</option>
+                    <option value="Встреча для мероприятия">Встреча для мероприятия</option>
+                    <option value="Другое">Другое</option>
+                </select>
+                <div id="customTopicField" class="custom-topic-field">
+                    <input type="text" id="meetCustomTopic" placeholder="Укажите причину встречи">
+                </div>
+                <button id="submitMeeting">📌 Отправить заявку</button>
+            </div>
+        </div>
+        
+        <div id="adminMeetingsBlock" class="admin-only">
+            <div class="card">
+                <h2>👑 Заявки граждан (только для администратора)</h2>
+                <div id="meetingsList" class="meetings-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="employees" class="section">
+        <div class="card">
+            <h2>👥 Сотрудники мэрии</h2>
+            <div id="employeesContainer" class="employees-grid"></div>
+            <div id="adminEmployeesBlock" class="admin-only">
+                <div class="add-employee-form">
+                    <h3>➕ Добавить сотрудника</h3>
+                    <input type="text" id="empName" placeholder="Имя сотрудника">
+                    <input type="text" id="empPosition" placeholder="Должность">
+                    <input type="text" id="empPhotoUrl" placeholder="Ссылка на фото сотрудника">
+                    <div id="empPhotoPreview"></div>
+                    <button id="submitEmployee">👤 Добавить сотрудника</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
+</div>
+
+<!-- Модальные окна -->
+<div id="priceModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>💰 Изменение стоимости аренды</h3>
+        <input type="text" id="priceInput" placeholder="Новая стоимость">
+        <div class="price-modal-buttons">
+            <button id="priceModalSave">Сохранить</button>
+            <button id="priceModalCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="changeImageModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>🖼️ Сменить картинку бизнеса</h3>
+        <input type="text" id="imageUrlInput" placeholder="Вставьте ссылку на картинку">
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="changeImageSave">Сохранить</button>
+            <button id="changeImageCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="changeEmployeePhotoModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>🖼️ Сменить фото сотрудника</h3>
+        <input type="text" id="employeePhotoUrlInput" placeholder="Вставьте ссылку на фото">
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="employeePhotoSave">Сохранить</button>
+            <button id="employeePhotoCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="addBusinessModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>➕ Добавить бизнес</h3>
+        <input type="text" id="newBizName" placeholder="Название бизнеса">
+        <input type="text" id="newBizAddress" placeholder="Адрес">
+        <input type="text" id="newBizPrice" placeholder="Стоимость аренды">
+        <select id="newBizType" style="margin-bottom: 1rem;">
+            <option value="СТО">🔧 СТО</option>
+            <option value="Клуб">🎧 Клуб</option>
+            <option value="Ресторан/Кафе">🍽️ Ресторан/Кафе</option>
+            <option value="Остальное">🏪 Остальное</option>
+        </select>
+        <select id="newBizStatus">
+            <option value="free">🟢 Свободен</option>
+            <option value="occupied">🔴 Занят</option>
+            <option value="pending">🟡 В обработке</option>
+        </select>
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="addBizSave">Добавить</button>
+            <button id="addBizCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="infoModal" class="info-modal">
+    <div class="info-modal-content">
+        <button class="close-info-modal">&times;</button>
+        <div id="infoModalBody"></div>
+    </div>
+</div>
+
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <h3>🔐 Вход для администратора</h3>
+        <input type="password" id="adminPassword" placeholder="Введите пароль">
+        <button id="confirmLogin">Войти</button>
+        <button id="closeModal" style="background: #e2e8f0; margin-top: 0.5rem;">Отмена</button>
+    </div>
+</div>
+
+<script>
+    // ========== ТЕМА ==========
+    function initTheme() {
+        const savedTheme = localStorage.getItem("site_theme");
+        const themeToggle = document.getElementById("themeToggle");
+        if (savedTheme === "gta") {
+            document.body.classList.add("theme-gta");
+            themeToggle.textContent = "🎨 GTA";
+        } else {
+            themeToggle.textContent = "🎨 Тема";
+        }
+        themeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("theme-gta");
+            if (document.body.classList.contains("theme-gta")) {
+                localStorage.setItem("site_theme", "gta");
+                themeToggle.textContent = "🎨 GTA";
+            } else {
+                localStorage.setItem("site_theme", "default");
+                themeToggle.textContent = "🎨 Тема";
+            }
+        });
+    }
+    
+    // ========== 🔥 ВАШИ ДАННЫЕ ИЗ FIREBASE ==========
+    const firebaseConfig = {
+        apiKey: "AIzaSyDOYM0-HXLGoOX_hO07iEkXzyy03PTUF44",
+        authDomain: "cityhall-20302.firebaseapp.com",
+        projectId: "cityhall-20302",
+        storageBucket: "cityhall-20302.firebasestorage.app",
+        messagingSenderId: "264481024371",
+        appId: "1:264481024371:web:6346ea9f9c5101f009bd06"
+    };
+    // ================================================
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const ADMIN_PASSWORD_HASH = "e8c18e6efb2032c5ecb63c4834e055a7f530d7bccf2ba54cbc09f176b35a72cc";
+
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    const infoTexts = {
+        businessOwner: `<h3>🏪 Правила ведения бизнесов</h3><p><strong>1.</strong> Открываться не менее двух раз в неделю.</p><p><strong>2.</strong> В неделю бизнес должен быть открыт не менее 6 часов.</p><p><strong>3.</strong> Подача отчёта в Экономический отдел Мэрии обязательна в конце недели — не позднее понедельника, включая воскресенье. Премия будет вручена пяти наиболее активным бизнесам по итогам рассмотрения отчётов.</p><p><strong>4.</strong> Обязательное ведение социальных сетей – instapic или birdy.</p><p><strong>5.</strong> Переоформление бизнеса на другого человека составляет 5% от первоначальной стоимости бизнеса.</p><p><strong>6.</strong> В любой момент Экономический отдел может провести проверку бизнеса, согласно Законодательству штата.</p><p><strong>Ответственность за нарушения:</strong> В случае нарушения одного из пунктов заведению будет вынесено сначала предупреждение, на второй раз штраф в 25% от стоимости бизнеса, после изымается в руки государству.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`,
+        smallBusiness: `<h3>🏢 Информация для малых частных предприятий</h3><h4>1. Правила подачи документов:</h4><ul><li>Расписать бизнес-план;</li><li>Расписать подробно сферу деятельности. Для детективных агентств и оказания охранных услуг обязательно: лицензия владения оружия, одобрение от правительства, справка от психолога, справка о несудимости;</li><li>Указать, кто будет являться работниками. Для совместных владельцев нужен будет доверенный документ и юридически подтверждённый;</li><li>Указать социальную сеть и обязательное ее ведение после одобрения и регистрации бизнеса. Если имеется готовый сайт, также указать его.</li></ul><h4>2. Проверка активности предприятия:</h4><ul><li>Социальная сеть;</li><li>Еженедельный отчет о проделанной работе.</li></ul><p>Если за предприятием не замечается активности – мэрия упраздняет предприятие, убирает с регистрации.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`
+    };
+
+    let businessesData = [];
+    let employees = [];
+    let reviews = [];
+    let meetings = [];
+    let news = [];
+    let documents = [];
+    let isAdmin = false;
+    let currentBizId = null;
+    let pendingImageBizId = null;
+    let pendingEmployeeId = null;
+    let unsubscribeFunctions = [];
+    
+    let currentStatusFilter = "all";
+    let currentTypeFilter = "all";
+
+    function setupRealtimeListeners() {
+        if (unsubscribeFunctions.length) {
+            unsubscribeFunctions.forEach(unsub => unsub());
+            unsubscribeFunctions = [];
+        }
+        unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('news').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('documents').onSnapshot(() => loadAllData()));
+    }
+
+    async function loadAllData() {
+        const businessesSnapshot = await db.collection('businesses').get();
+        businessesData = [];
+        businessesSnapshot.forEach(doc => {
+            const data = doc.data();
+            businessesData.push({
+                id: doc.id,
+                name: data.name,
+                address: data.address,
+                type: data.type || "Остальное",
+                imgIcon: data.imgIcon,
+                imgUrl: data.imgUrl,
+                price: data.price,
+                status: data.status
+            });
+        });
+        
+        const employeesSnapshot = await db.collection('employees').get();
+        employees = [];
+        employeesSnapshot.forEach(doc => {
+            const data = doc.data();
+            employees.push({
+                id: doc.id,
+                name: data.name,
+                position: data.position,
+                photoUrl: data.photoUrl,
+                icon: data.icon
+            });
+        });
+        
+        const reviewsSnapshot = await db.collection('reviews').get();
+        reviews = [];
+        reviewsSnapshot.forEach(doc => {
+            const data = doc.data();
+            reviews.push({
+                id: doc.id,
+                name: data.name,
+                text: data.text,
+                date: data.date
+            });
+        });
+        
+        const meetingsSnapshot = await db.collection('meetings').get();
+        meetings = [];
+        meetingsSnapshot.forEach(doc => {
+            const data = doc.data();
+            meetings.push({
+                id: doc.id,
+                name: data.name,
+                phone: data.phone,
+                cardId: data.cardId,
+                topic: data.topic,
+                customTopic: data.customTopic,
+                status: data.status,
+                date: data.date
+            });
+        });
+        
+        const newsSnapshot = await db.collection('news').get();
+        news = [];
+        newsSnapshot.forEach(doc => {
+            const data = doc.data();
+            news.push({
+                id: doc.id,
+                title: data.title,
+                text: data.text,
+                imageUrl: data.imageUrl,
+                videoUrl: data.videoUrl,
+                date: data.date
+            });
+        });
+        
+        const docsSnapshot = await db.collection('documents').get();
+        documents = [];
+        docsSnapshot.forEach(doc => {
+            const data = doc.data();
+            documents.push({
+                id: doc.id,
+                title: data.title,
+                text: data.text,
+                imageUrl: data.imageUrl,
+                date: data.date
+            });
+        });
+        
+        renderAll();
+    }
+
+    function renderAll() {
+        renderBusiness();
+        renderReviews();
+        renderNews();
+        renderMeetings();
+        renderDocuments();
+        renderEmployees();
+        updateStats();
+    }
+
+    function getStatusUI(status) {
+        if(status === "free") return { class: "status-free", text: "🟢 СВОБОДЕН" };
+        if(status === "occupied") return { class: "status-occupied", text: "🔴 ЗАНЯТ" };
+        return { class: "status-pending", text: "🟡 В ОБРАБОТКЕ" };
+    }
+
+    function getTypeDisplay(type) {
+        if(type === "СТО") return "🔧 СТО";
+        if(type === "Клуб") return "🎧 Клуб";
+        if(type === "Ресторан/Кафе") return "🍽️ Ресторан/Кафе";
+        return "🏪 Остальное";
+    }
+
+    function getMeetingStatusUI(status) {
+        if(status === "inwork") return { class: "status-inwork", text: "🟢 В работе" };
+        if(status === "accepted") return { class: "status-accepted", text: "🟡 Принято" };
+        if(status === "finished") return { class: "status-finished", text: "🔵 Закончена" };
+        return { class: "status-inwork", text: "🟢 В работе" };
+    }
+
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+    function extractYouTubeId(url) { if(!url) return null; const regExp = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/; const match = url.match(regExp); return match ? match[1] : null; }
+
+    function renderBusiness() {
+        const grid = document.getElementById("businessGrid");
+        if(!grid) return;
+        
+        let filteredBusinesses = businessesData;
+        if (currentStatusFilter !== "all") {
+            filteredBusinesses = filteredBusinesses.filter(b => b.status === currentStatusFilter);
+        }
+        if (currentTypeFilter !== "all") {
+            filteredBusinesses = filteredBusinesses.filter(b => b.type === currentTypeFilter);
+        }
+        
+        grid.innerHTML = filteredBusinesses.map(biz => {
+            const statusUI = getStatusUI(biz.status);
+            const typeDisplay = getTypeDisplay(biz.type);
+            const imgHtml = biz.imgUrl ? `<img src="${biz.imgUrl}" alt="${biz.name}">` : `<div style="font-size: 3.5rem;">${biz.imgIcon || '🏢'}</div>`;
+            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select>` : ''}</div></div>`;
+        }).join('');
+        
+        if(isAdmin) {
+            document.querySelectorAll('.status-select').forEach(select => select.addEventListener('change', async (e) => { const bizId = select.dataset.id; const newStatus = select.value; await db.collection('businesses').doc(bizId).update({ status: newStatus }); loadAllData(); }));
+            document.querySelectorAll('.editable-price').forEach(priceEl => priceEl.addEventListener('click', (e) => { currentBizId = priceEl.dataset.id; document.getElementById("priceInput").value = businessesData.find(b => b.id == currentBizId).price; document.getElementById("priceModal").style.display = "flex"; }));
+            document.querySelectorAll('.change-image-btn').forEach(btn => btn.addEventListener('click', (e) => { 
+                pendingImageBizId = btn.dataset.id;
+                document.getElementById("imageUrlInput").value = "";
+                document.getElementById("changeImageModal").style.display = "flex";
+            }));
+            document.querySelectorAll('.delete-business-btn').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); const bizId = btn.dataset.id; if(confirm("Удалить этот бизнес?")) { await db.collection('businesses').doc(bizId).delete(); loadAllData(); } }));
+        }
+    }
+
+    function initFilters() {
+        document.querySelectorAll('.status-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStatusFilter = btn.dataset.status;
+                renderBusiness();
+            });
+        });
+        document.querySelectorAll('.type-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.type-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTypeFilter = btn.dataset.type;
+                renderBusiness();
+            });
+        });
+    }
+
+    function renderReviews() {
+        const container = document.getElementById("reviewsContainer");
+        if(!container) return;
+        if(reviews.length === 0) { container.innerHTML = "<div class='review-item'>Пока нет отзывов. Будьте первым!</div>"; return; }
+        container.innerHTML = reviews.map(r => `<div class="review-item"><div class="review-content"><div class="review-name">${escapeHtml(r.name)}</div><div class="review-date">${r.date}</div><p>${escapeHtml(r.text)}</p></div>${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️ Удалить</button>` : ''}</div>`).join('');
+        if(isAdmin) document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('reviews').doc(id).delete(); loadAllData(); }));
+    }
+
+    function renderNews() {
+        const container = document.getElementById("newsContainer");
+        if(!container) return;
+        if(news.length === 0) { container.innerHTML = "<div class='news-item'>Пока нет новостей. Следите за обновлениями!</div>"; return; }
+        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = extractYouTubeId(n.videoUrl); if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news image" loading="lazy">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️ Удалить новость</button>` : ''}</div>`; }).join('');
+        if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('news').doc(id).delete(); loadAllData(); }));
+    }
+
+    function renderMeetings() {
+        const container = document.getElementById("meetingsList");
+        if(!container) return;
+        if(meetings.length === 0) { container.innerHTML = "<div class='meeting-item'>Нет запланированных встреч.</div>"; return; }
+        container.innerHTML = meetings.map(m => { const statusUI = getMeetingStatusUI(m.status); return `<div class="meeting-item"><div class="meeting-header"><div class="review-name">${escapeHtml(m.name)}</div><div class="meeting-status ${statusUI.class}">${statusUI.text}</div></div><div>📞 ${m.phone || '—'}</div><div>🪪 ID карта: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">📅 ${m.date}</div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">🟢 В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">🟡 Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">🔵 Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️ Удалить</button>` : ''}</div>` : ''}</div>`; }).join('');
+        if(isAdmin) {
+            document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; const newStatus = btn.dataset.status; await db.collection('meetings').doc(id).update({ status: newStatus }); loadAllData(); }));
+            document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('meetings').doc(id).delete(); loadAllData(); }));
+        }
+    }
+
+    function renderDocuments() {
+        const container = document.getElementById("documentsContainer");
+        if(!container) return;
+        if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Пока нет документов.</div>"; return; }
+        container.innerHTML = [...documents].reverse().map(d => `<div class="doc-item"><div class="doc-date">📅 ${d.date}</div><div class="doc-title">${escapeHtml(d.title)}</div>${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc image" loading="lazy">` : ''}<div class="doc-text">${escapeHtml(d.text)}</div>${isAdmin ? `<button class="delete-doc" data-id="${d.id}">🗑️ Удалить документ</button>` : ''}</div>`).join('');
+        if(isAdmin) document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('documents').doc(id).delete(); loadAllData(); }));
+    }
+
+    function renderEmployees() {
+        const container = document.getElementById("employeesContainer");
+        if(!container) return;
+        if(employees.length === 0) { container.innerHTML = "<div class='employee-card'>Сотрудников пока нет.</div>"; return; }
+        container.innerHTML = employees.map(emp => `<div class="employee-card"><div class="employee-photo">${emp.photoUrl ? `<img src="${emp.photoUrl}" alt="${emp.name}">` : `<div class="default-icon">${emp.icon || '👤'}</div>`}${isAdmin ? `<button class="change-employee-photo admin-only" data-id="${emp.id}">🖼️ Сменить фото</button>` : ''}</div><div class="employee-name">${escapeHtml(emp.name)}</div><div class="employee-position">${escapeHtml(emp.position)}</div>${isAdmin ? `<button class="delete-employee admin-only" data-id="${emp.id}">🗑️ Удалить</button>` : ''}</div>`).join('');
+        if(isAdmin) {
+            document.querySelectorAll('.delete-employee').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('employees').doc(id).delete(); loadAllData(); }));
+            document.querySelectorAll('.change-employee-photo').forEach(btn => btn.addEventListener('click', (e) => { 
+                pendingEmployeeId = btn.dataset.id;
+                document.getElementById("employeePhotoUrlInput").value = "";
+                document.getElementById("changeEmployeePhotoModal").style.display = "flex";
+            }));
+        }
+    }
+
+    function updateBusinessStats() { const total = businessesData.length; const freeCount = businessesData.filter(b => b.status === "free").length; document.getElementById("totalBusiness").innerText = total; document.getElementById("freeBusinessCount").innerText = freeCount; }
+    function updateStats() { document.getElementById("reviewCount").innerText = reviews.length; updateBusinessStats(); }
+
+    function initInfoModal() {
+        const modal = document.getElementById("infoModal"), modalBody = document.getElementById("infoModalBody"), closeBtn = modal.querySelector(".close-info-modal");
+        document.querySelectorAll('.info-link').forEach(link => link.addEventListener("click", () => { const infoKey = link.dataset.info; if(infoKey && infoTexts[infoKey]) { modalBody.innerHTML = infoTexts[infoKey]; modal.style.display = "flex"; } }));
+        closeBtn.addEventListener("click", () => modal.style.display = "none");
+        modal.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
+        document.addEventListener("keydown", (e) => { if(e.key === "Escape" && modal.style.display === "flex") modal.style.display = "none"; });
+    }
+
+    function initPriceModal() {
+        const modal = document.getElementById("priceModal"), saveBtn = document.getElementById("priceModalSave"), cancelBtn = document.getElementById("priceModalCancel");
+        saveBtn.addEventListener("click", async () => { const newPrice = document.getElementById("priceInput").value.trim(); if(newPrice) { await db.collection('businesses').doc(currentBizId).update({ price: newPrice }); loadAllData(); } modal.style.display = "none"; });
+        cancelBtn.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
+    }
+
+    function initChangeImageModal() {
+        const modal = document.getElementById("changeImageModal"), saveBtn = document.getElementById("changeImageSave"), cancelBtn = document.getElementById("changeImageCancel");
+        saveBtn.addEventListener("click", async () => {
+            const url = document.getElementById("imageUrlInput").value.trim();
+            if (url) {
+                await db.collection('businesses').doc(pendingImageBizId).update({ imgUrl: url, imgIcon: null });
+                loadAllData();
+                modal.style.display = "none";
+                // alert убран
+            } else {
+                // alert убран
+            }
+        });
+        cancelBtn.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
+    }
+
+    function initChangeEmployeePhotoModal() {
+        const modal = document.getElementById("changeEmployeePhotoModal"), saveBtn = document.getElementById("employeePhotoSave"), cancelBtn = document.getElementById("employeePhotoCancel");
+        saveBtn.addEventListener("click", async () => {
+            const url = document.getElementById("employeePhotoUrlInput").value.trim();
+            if (url) {
+                await db.collection('employees').doc(pendingEmployeeId).update({ photoUrl: url, icon: null });
+                loadAllData();
+                modal.style.display = "none";
+                // alert убран
+            } else {
+                // alert убран
+            }
+        });
+        cancelBtn.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
+    }
+
+    function initAddBusinessModal() {
+        const modal = document.getElementById("addBusinessModal"), saveBtn = document.getElementById("addBizSave"), cancelBtn = document.getElementById("addBizCancel");
+        saveBtn.addEventListener("click", async () => { 
+            const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value; 
+            if(!name || !address || !price) { alert("Заполните все поля"); return; } 
+            const newId = Date.now().toString(); 
+            await db.collection('businesses').doc(newId).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null }); 
+            document.getElementById("newBizName").value = ""; 
+            document.getElementById("newBizAddress").value = ""; 
+            document.getElementById("newBizPrice").value = ""; 
+            modal.style.display = "none"; 
+            loadAllData(); 
+        });
+        cancelBtn.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
+        document.getElementById("addBusinessBtn")?.addEventListener("click", () => modal.style.display = "flex");
+    }
+
+    function initMeetingForm() {
+        const topicSelect = document.getElementById("meetTopic"), customField = document.getElementById("customTopicField");
+        if(topicSelect) topicSelect.addEventListener("change", () => { if(topicSelect.value === "Другое") customField.classList.add("visible"); else customField.classList.remove("visible"); });
+    }
+
+    function saveAdminStatus(admin) { sessionStorage.setItem("adminMode", admin ? "true" : "false"); }
+    function loadAdminStatus() { const saved = sessionStorage.getItem("adminMode"); if (saved === "true") { setAdminMode(true); } }
+
+    function setAdminMode(admin) {
+        isAdmin = admin;
+        saveAdminStatus(admin);
+        const body = document.body;
+        const adminBlock = document.getElementById("adminMeetingsBlock"), adminNewsBlock = document.getElementById("adminNewsBlock"), adminDocumentsBlock = document.getElementById("adminDocumentsBlock"), adminEmployeesBlock = document.getElementById("adminEmployeesBlock");
+        if(isAdmin) {
+            body.classList.add('admin-mode');
+            const authArea = document.getElementById("authArea");
+            authArea.innerHTML = `<div class="admin-panel"><span class="admin-badge">👑 АДМИН</span><button id="logoutBtn" class="admin-btn logout-btn">Выйти</button></div>`;
+            document.getElementById("logoutBtn")?.addEventListener("click", () => setAdminMode(false));
+            renderAll();
+            if(adminBlock) adminBlock.style.display = "block"; if(adminNewsBlock) adminNewsBlock.style.display = "block"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "block"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "block";
+            setActiveSection("meeting");
+        } else {
+            body.classList.remove('admin-mode');
+            const authArea = document.getElementById("authArea");
+            authArea.innerHTML = `<button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>`;
+            document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
+            if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
+            renderAll();
+        }
+    }
+
+    function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
+    function hideLoginModal() { document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; }
+    
+    async function checkAdminLogin() { 
+        const pass = document.getElementById("adminPassword").value; 
+        const hashedPass = await hashPassword(pass);
+        if (hashedPass === ADMIN_PASSWORD_HASH) { 
+            setAdminMode(true); 
+            hideLoginModal(); 
+        } else { 
+            alert("Неверный пароль!"); 
+        } 
+    }
+
+    function setupForms() {
+        document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim(), text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст отзыва"); return; } if(!name) name = "Гражданин"; const newId = Date.now().toString(); await db.collection('reviews').doc(newId).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; alert("✅ Отзыв опубликован!"); loadAllData(); });
+        
+        document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Пожалуйста, укажите причину встречи"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля (имя, телефон, ID карта)"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон должен содержать 10 цифр"); return; } const newId = Date.now().toString(); await db.collection('meetings').doc(newId).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; alert("📅 Заявка отправлена! Администратор рассмотрит её."); loadAllData(); });
+        
+        document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(), text = document.getElementById("newsText").value.trim(), imageUrl = document.getElementById("newsImageUrl").value.trim(), videoUrl = document.getElementById("newsVideoUrl").value.trim(); if(!title || !text) { alert("Заполните заголовок и текст новости"); return; } const newId = Date.now().toString(); await db.collection('news').doc(newId).set({ title, text, imageUrl: imageUrl || null, videoUrl: videoUrl || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; alert("✅ Новость опубликована!"); loadAllData(); });
+        
+        document.getElementById("submitDoc")?.addEventListener("click", async () => { let title = document.getElementById("docTitle").value.trim(), text = document.getElementById("docText").value.trim(), imageUrl = document.getElementById("docImageUrl").value.trim(); if(!title || !text) { alert("Заполните название и текст документа"); return; } const newId = Date.now().toString(); await db.collection('documents').doc(newId).set({ title, text, imageUrl: imageUrl || null, date: new Date().toLocaleString() }); document.getElementById("docTitle").value = ""; document.getElementById("docText").value = ""; document.getElementById("docImageUrl").value = ""; document.getElementById("docImagePreviewContainer").innerHTML = ""; alert("✅ Документ опубликован!"); loadAllData(); });
+        
+        document.getElementById("submitEmployee")?.addEventListener("click", async () => { let name = document.getElementById("empName").value.trim(), position = document.getElementById("empPosition").value.trim(), photoUrl = document.getElementById("empPhotoUrl").value.trim(); if(!name || !position) { alert("Заполните имя и должность сотрудника"); return; } const newId = Date.now().toString(); await db.collection('employees').doc(newId).set({ name, position, photoUrl: photoUrl || null, icon: photoUrl ? null : "👤" }); document.getElementById("empName").value = ""; document.getElementById("empPosition").value = ""; document.getElementById("empPhotoUrl").value = ""; document.getElementById("empPhotoPreview").innerHTML = ""; alert("✅ Сотрудник добавлен!"); loadAllData(); });
+        
+        document.getElementById("newsImageUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("imagePreviewContainer"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
+        document.getElementById("docImageUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("docImagePreviewContainer"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
+        document.getElementById("empPhotoUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("empPhotoPreview"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
+    }
+
+    function setActiveSection(sectionId) {
+        document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active-section"));
+        document.getElementById(sectionId)?.classList.add("active-section");
+        document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
+        if(activeBtn) activeBtn.classList.add("active");
+        localStorage.setItem("activeSection", sectionId);
+    }
+
+    function initNavigation() {
+        document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => { const sectionId = btn.getAttribute("data-section"); if(sectionId) { setActiveSection(sectionId); window.scrollTo({ top: 0, behavior: "smooth" }); } }));
+        const savedSection = localStorage.getItem("activeSection");
+        if(savedSection && document.getElementById(savedSection)) setActiveSection(savedSection);
+        else setActiveSection("home");
+    }
+
+    function initEnterLogin() {
+        const passwordInput = document.getElementById("adminPassword");
+        if(passwordInput) { passwordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkAdminLogin(); }); }
+    }
+
+    setupRealtimeListeners();
+    loadAllData();
+    setupForms();
+    initNavigation();
+    initInfoModal();
+    initPriceModal();
+    initChangeImageModal();
+    initChangeEmployeePhotoModal();
+    initAddBusinessModal();
+    initMeetingForm();
+    initEnterLogin();
+    initFilters();
+    initTheme();
+    loadAdminStatus();
+    document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
+    document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
+    document.getElementById("closeModal")?.addEventListener("click", hideLoginModal);
+    window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) hideLoginModal(); });
+</script>
+</body>
+</html>
