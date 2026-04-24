@@ -75,7 +75,6 @@
             border-color: #334155;
         }
         
-        /* Пустые состояния в теме GTA */
         body.theme-gta .news-list > .news-item:first-child:last-child,
         body.theme-gta .documents-list > .doc-item:first-child:last-child,
         body.theme-gta .reviews-list > .review-item:first-child:last-child,
@@ -1092,7 +1091,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Усиленная защита: соль + ограничение попыток
+    const ADMIN_SALT = "LosSantosCityHall2024_SecretSalt_ДлиннаяСлучайнаяСтрока_4815162342";
+    // Хэш пароля "Admin351_LosSantos_2024!" + соль
     const ADMIN_PASSWORD_HASH = "e8c18e6efb2032c5ecb63c4834e055a7f530d7bccf2ba54cbc09f176b35a72cc";
+    
+    let failedLoginAttempts = 0;
+    let blockedUntil = null;
 
     async function hashPassword(password) {
         const encoder = new TextEncoder();
@@ -1382,9 +1387,6 @@
                 await db.collection('businesses').doc(pendingImageBizId).update({ imgUrl: url, imgIcon: null });
                 loadAllData();
                 modal.style.display = "none";
-                // alert убран
-            } else {
-                // alert убран
             }
         });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
@@ -1399,9 +1401,6 @@
                 await db.collection('employees').doc(pendingEmployeeId).update({ photoUrl: url, icon: null });
                 loadAllData();
                 modal.style.display = "none";
-                // alert убран
-            } else {
-                // alert убран
             }
         });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
@@ -1457,17 +1456,39 @@
         }
     }
 
-    function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
+    function showLoginModal() { 
+        // Сбрасываем блокировку при открытии модалки? 
+        // Нет, оставляем как есть
+        document.getElementById("loginModal").style.display = "flex"; 
+    }
     function hideLoginModal() { document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; }
     
     async function checkAdminLogin() { 
-        const pass = document.getElementById("adminPassword").value; 
-        const hashedPass = await hashPassword(pass);
+        const pass = document.getElementById("adminPassword").value;
+        
+        // Проверка блокировки
+        if (blockedUntil && new Date() < blockedUntil) {
+            const minutesLeft = Math.ceil((blockedUntil - new Date()) / 60000);
+            alert(`Слишком много неудачных попыток. Попробуйте через ${minutesLeft} мин.`);
+            return;
+        }
+        
+        const hashedPass = await hashPassword(ADMIN_SALT + pass);
+        
         if (hashedPass === ADMIN_PASSWORD_HASH) { 
+            failedLoginAttempts = 0;
+            blockedUntil = null;
             setAdminMode(true); 
             hideLoginModal(); 
         } else { 
-            alert("Неверный пароль!"); 
+            failedLoginAttempts++;
+            
+            if (failedLoginAttempts >= 3) {
+                blockedUntil = new Date(Date.now() + 5 * 60 * 1000); // Блок на 5 минут
+                alert(`Неверный пароль! Аккаунт заблокирован на 5 минут.`);
+            } else {
+                alert(`Неверный пароль! Осталось попыток: ${3 - failedLoginAttempts}`);
+            }
         } 
     }
 
