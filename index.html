@@ -393,8 +393,82 @@
         }
         .admin-badge { background: #9b2c2c; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; }
         .admin-btn { background: #c9a87b; border: none; padding: 0.3rem 1rem; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        .login-btn { background: #2f6b2f; color: white; }
+        .login-btn { background: #2f6b2f; color: white; position: relative; }
         .logout-btn { background: #9b2c2c; color: white; }
+        
+        /* Стили для уведомлений */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* Стили для рейтинга */
+        .rating-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+        .stars {
+            display: inline-flex;
+            gap: 2px;
+            cursor: pointer;
+        }
+        .star {
+            font-size: 1rem;
+            color: #cbd5e0;
+            transition: all 0.1s;
+        }
+        .star.active {
+            color: #fbbf24;
+        }
+        .star.hover {
+            color: #f59e0b;
+        }
+        .rating-value {
+            font-weight: bold;
+            color: #fbbf24;
+        }
+        .rating-count {
+            color: #718096;
+            font-size: 0.7rem;
+        }
+        
+        body.theme-gta .rating-count {
+            color: #94a3b8;
+        }
+        body.theme-gta .star {
+            color: #475569;
+        }
+        body.theme-gta .star.active {
+            color: #fbbf24;
+        }
+        
+        .business-rating {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            padding-top: 0.3rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        body.theme-gta .business-rating {
+            border-top-color: #334155;
+        }
+        
         .container { max-width: 1600px; margin: 2rem auto; padding: 0 2rem 4rem; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active-section { display: block; }
@@ -1116,9 +1190,49 @@
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
     let unsubscribeFunctions = [];
+    let lastMeetingCount = 0;
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
+
+    // Функция для обновления счётчика уведомлений
+    function updateNotificationBadge() {
+        const loginBtn = document.getElementById("loginModalBtn");
+        if (!loginBtn) return;
+        
+        const pendingMeetingsCount = meetings.filter(m => m.status === "inwork" || m.status === "accepted").length;
+        
+        // Удаляем старый бейдж
+        const oldBadge = loginBtn.querySelector(".notification-badge");
+        if (oldBadge) oldBadge.remove();
+        
+        // Добавляем новый, если есть непрочитанные заявки
+        if (pendingMeetingsCount > 0 && !isAdmin) {
+            const badge = document.createElement("span");
+            badge.className = "notification-badge";
+            badge.textContent = pendingMeetingsCount;
+            loginBtn.style.position = "relative";
+            loginBtn.appendChild(badge);
+        }
+        
+        // Воспроизводим звук, если появились новые заявки
+        if (pendingMeetingsCount > lastMeetingCount && lastMeetingCount !== 0) {
+            // Тихое "пилик" через Web Audio (не навязчиво)
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = 880;
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch(e) { /* звук не поддерживается */ }
+        }
+        lastMeetingCount = pendingMeetingsCount;
+    }
 
     function setupRealtimeListeners() {
         if (unsubscribeFunctions.length) {
@@ -1128,7 +1242,10 @@
         unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
-        unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('meetings').onSnapshot(async (snapshot) => {
+            await loadAllData();
+            updateNotificationBadge();
+        }));
         unsubscribeFunctions.push(db.collection('news').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('documents').onSnapshot(() => loadAllData()));
     }
@@ -1146,7 +1263,10 @@
                 imgIcon: data.imgIcon,
                 imgUrl: data.imgUrl,
                 price: data.price,
-                status: data.status
+                status: data.status,
+                ratings: data.ratings || [],
+                avgRating: data.avgRating || 0,
+                ratingCount: data.ratingCount || 0
             });
         });
         
@@ -1219,6 +1339,68 @@
         });
         
         renderAll();
+        updateNotificationBadge();
+    }
+
+    // Функция для голосования за бизнес
+    async function rateBusiness(businessId, rating) {
+        const biz = businessesData.find(b => b.id === businessId);
+        if (!biz) return;
+        
+        // Получаем IP пользователя (или используем localStorage для простоты)
+        let userId = localStorage.getItem("userId");
+        if (!userId) {
+            userId = "user_" + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem("userId", userId);
+        }
+        
+        // Проверяем, голосовал ли пользователь уже за этот бизнес
+        if (biz.ratings && biz.ratings.some(r => r === userId)) {
+            alert("Вы уже оценили это заведение!");
+            return;
+        }
+        
+        const newRatings = [...(biz.ratings || []), userId];
+        const sum = newRatings.reduce((acc, _, idx, arr) => {
+            // Пересчёт не нужен, мы храним только ID пользователей
+            // Но для среднего нужно знать сумму оценок
+            return acc;
+        }, 0);
+        
+        // Нужно хранить оценки, а не только ID
+        // Обновим структуру: хранить объекты { userId, rating }
+        let ratingsObj = biz.ratingsObj || [];
+        ratingsObj.push({ userId, rating });
+        
+        const avg = ratingsObj.reduce((sum, r) => sum + r.rating, 0) / ratingsObj.length;
+        
+        await db.collection('businesses').doc(businessId).update({
+            ratingsObj: ratingsObj,
+            avgRating: avg,
+            ratingCount: ratingsObj.length
+        });
+        
+        loadAllData();
+    }
+
+    function renderRatingStars(businessId, currentRating, ratingCount) {
+        const userRating = 0; // Можно определить по userId, но для простоты показываем звёзды для голосования
+        
+        let starsHtml = '<div class="rating-container">';
+        starsHtml += '<div class="stars" data-business-id="' + businessId + '">';
+        for (let i = 1; i <= 5; i++) {
+            const isActive = i <= Math.round(currentRating);
+            starsHtml += `<span class="star ${isActive ? 'active' : ''}" data-value="${i}">★</span>`;
+        }
+        starsHtml += '</div>';
+        if (ratingCount > 0) {
+            starsHtml += `<span class="rating-value">${currentRating.toFixed(1)}</span>`;
+            starsHtml += `<span class="rating-count">(${ratingCount})</span>`;
+        } else {
+            starsHtml += `<span class="rating-count">нет оценок</span>`;
+        }
+        starsHtml += '</div>';
+        return starsHtml;
     }
 
     function renderAll() {
@@ -1229,6 +1411,7 @@
         renderDocuments();
         renderEmployees();
         updateStats();
+        updateNotificationBadge();
     }
 
     function getStatusUI(status) {
@@ -1270,8 +1453,39 @@
             const statusUI = getStatusUI(biz.status);
             const typeDisplay = getTypeDisplay(biz.type);
             const imgHtml = biz.imgUrl ? `<img src="${biz.imgUrl}" alt="${biz.name}">` : `<div style="font-size: 3.5rem;">${biz.imgIcon || '🏢'}</div>`;
-            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select>` : ''}</div></div>`;
+            const ratingHtml = renderRatingStars(biz.id, biz.avgRating || 0, biz.ratingCount || 0);
+            
+            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div>${ratingHtml}<div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select>` : ''}</div></div>`;
         }).join('');
+        
+        // Добавляем обработчики для звёзд
+        document.querySelectorAll('.stars').forEach(starsContainer => {
+            const businessId = starsContainer.dataset.businessId;
+            const stars = starsContainer.querySelectorAll('.star');
+            
+            stars.forEach(star => {
+                star.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const rating = parseInt(star.dataset.value);
+                    await rateBusiness(businessId, rating);
+                });
+                
+                star.addEventListener('mouseenter', () => {
+                    const value = parseInt(star.dataset.value);
+                    stars.forEach((s, idx) => {
+                        if (idx < value) {
+                            s.classList.add('hover');
+                        } else {
+                            s.classList.remove('hover');
+                        }
+                    });
+                });
+                
+                star.addEventListener('mouseleave', () => {
+                    stars.forEach(s => s.classList.remove('hover'));
+                });
+            });
+        });
         
         if(isAdmin) {
             document.querySelectorAll('.status-select').forEach(select => select.addEventListener('change', async (e) => { const bizId = select.dataset.id; const newStatus = select.value; await db.collection('businesses').doc(bizId).update({ status: newStatus }); loadAllData(); }));
@@ -1406,7 +1620,7 @@
             const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value; 
             if(!name || !address || !price) { alert("Заполните все поля"); return; } 
             const newId = Date.now().toString(); 
-            await db.collection('businesses').doc(newId).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null }); 
+            await db.collection('businesses').doc(newId).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null, ratings: [], avgRating: 0, ratingCount: 0 }); 
             document.getElementById("newBizName").value = ""; 
             document.getElementById("newBizAddress").value = ""; 
             document.getElementById("newBizPrice").value = ""; 
@@ -1447,6 +1661,7 @@
             if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
             renderAll();
         }
+        updateNotificationBadge();
     }
 
     function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
@@ -1466,7 +1681,23 @@
     function setupForms() {
         document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim(), text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст отзыва"); return; } if(!name) name = "Гражданин"; const newId = Date.now().toString(); await db.collection('reviews').doc(newId).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; alert("✅ Отзыв опубликован!"); loadAllData(); });
         
-        document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Пожалуйста, укажите причину встречи"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля (имя, телефон, ID карта)"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон должен содержать 10 цифр"); return; } const newId = Date.now().toString(); await db.collection('meetings').doc(newId).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; alert("📅 Заявка отправлена! Администратор рассмотрит её."); loadAllData(); });
+        document.getElementById("submitMeeting")?.addEventListener("click", async () => { 
+            let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; 
+            if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Пожалуйста, укажите причину встречи"); return; } } 
+            if(!name || !phone || !cardId) { alert("Заполните все поля (имя, телефон, ID карта)"); return; } 
+            if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон должен содержать 10 цифр"); return; } 
+            const newId = Date.now().toString(); 
+            await db.collection('meetings').doc(newId).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); 
+            document.getElementById("meetName").value = ""; 
+            document.getElementById("meetPhone").value = ""; 
+            document.getElementById("meetCardId").value = ""; 
+            document.getElementById("meetCustomTopic").value = ""; 
+            document.getElementById("customTopicField").classList.remove("visible"); 
+            document.getElementById("meetTopic").value = "Бизнес-вопрос"; 
+            alert("📅 Заявка отправлена! Администратор рассмотрит её."); 
+            loadAllData(); 
+            await loadAllData(); // Двойная загрузка чтобы уведомление точно появилось
+        });
         
         document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(), text = document.getElementById("newsText").value.trim(), imageUrl = document.getElementById("newsImageUrl").value.trim(), videoUrl = document.getElementById("newsVideoUrl").value.trim(); if(!title || !text) { alert("Заполните заголовок и текст новости"); return; } const newId = Date.now().toString(); await db.collection('news').doc(newId).set({ title, text, imageUrl: imageUrl || null, videoUrl: videoUrl || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; alert("✅ Новость опубликована!"); loadAllData(); });
         
