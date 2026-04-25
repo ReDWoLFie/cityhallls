@@ -13,6 +13,7 @@
 </head>
 <body>
 
+<!-- ВСЁ ТЕЛО КАК БЫЛО - без изменений -->
 <div class="header">
     <div class="nav">
         <div class="logo">
@@ -217,7 +218,7 @@
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
 </div>
 
-<!-- Модальное окно выбора бизнеса -->
+<!-- Модальные окна -->
 <div id="businessSelectModal" class="business-select-modal">
     <div class="business-select-content">
         <h3>🏢 Выберите бизнес</h3>
@@ -228,7 +229,6 @@
     </div>
 </div>
 
-<!-- Модальное окно информации о бизнесе -->
 <div id="businessInfoModal" class="business-info-modal">
     <div class="business-info-content">
         <div class="close-info-modal-btn" id="closeInfoModalBtn">&times;</div>
@@ -244,7 +244,6 @@
     </div>
 </div>
 
-<!-- Модальные окна -->
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -318,16 +317,16 @@
     </div>
 </div>
 
-<!-- Scripts -->
+<!-- Scripts: ПОРЯДОК ВАЖЕН! -->
 <script src="js/config.js"></script>
 <script src="js/firebase-init.js"></script>
-<script src="js/theme.js"></script>
 <script src="js/utils.js"></script>
-<script src="js/map.js"></script>
+<script src="js/theme.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/render.js"></script>
 <script src="js/forms.js"></script>
 <script src="js/admin.js"></script>
+<script src="js/map.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/main.js"></script>
 </body>

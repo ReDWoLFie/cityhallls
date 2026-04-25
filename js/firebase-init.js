@@ -23,3 +23,5 @@ let currentBizId = null;
 let pendingImageBizId = null;
 let pendingEmployeeId = null;
 let currentBusinessForDelete = null;
+
+console.log("Firebase initialized");
