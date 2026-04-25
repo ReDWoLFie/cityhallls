@@ -412,6 +412,366 @@
         h2 { font-size: 1.8rem; margin-bottom: 1.5rem; border-left: 4px solid #c9a87b; padding-left: 1.2rem; color: #1a1f2e; }
         h3 { font-size: 1.4rem; margin: 1rem 0 0.75rem; color: #a8845a; }
         
+        /* Стили для карты */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: 550px;
+            background: #1a1f2e;
+            border-radius: 16px;
+            overflow: auto;
+            cursor: grab;
+        }
+        .map-wrapper.dragging {
+            cursor: grabbing;
+        }
+        .map-container {
+            position: relative;
+            display: inline-block;
+            min-width: 100%;
+        }
+        .map-image-wrapper {
+            position: relative;
+            display: inline-block;
+            transform-origin: top left;
+        }
+        #gtaMapImage {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            cursor: crosshair;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: auto;
+        }
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 30;
+        }
+        .map-controls-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 30;
+        }
+        .map-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid #c9a87b;
+            border-radius: 8px;
+            color: #c9a87b;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .map-btn:hover {
+            background: #c9a87b;
+            color: #1a1f2e;
+            transform: scale(1.05);
+        }
+        .map-btn.active {
+            background: #c9a87b;
+            color: #1a1f2e;
+            box-shadow: 0 0 12px #c9a87b;
+        }
+        body.theme-gta .map-btn {
+            background: rgba(15, 23, 36, 0.9);
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        body.theme-gta .map-btn:hover, body.theme-gta .map-btn.active {
+            background: #f59e0b;
+            color: #0f1724;
+        }
+        .zoom-btn {
+            font-size: 24px;
+        }
+        .markers-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .map-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            cursor: grab;
+            transition: filter 0.1s, transform 0.1s;
+            pointer-events: auto;
+            z-index: 20;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .map-marker.dragging {
+            cursor: grabbing;
+            z-index: 100;
+            filter: brightness(1.2) drop-shadow(0 0 4px white);
+            transform: scale(1.2);
+        }
+        .map-marker:hover {
+            filter: brightness(1.1) drop-shadow(0 0 2px white);
+            transform: scale(1.15);
+        }
+        .map-coords-info {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #718096;
+            text-align: center;
+        }
+        body.theme-gta .map-coords-info {
+            background: #0f1724;
+            color: #94a3b8;
+        }
+        
+        /* Уведомление */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 3000;
+            animation: fadeInOut 2s ease forwards;
+            pointer-events: none;
+            white-space: nowrap;
+            border: 1px solid #c9a87b;
+        }
+        body.theme-gta .toast-notification {
+            background: rgba(15, 23, 36, 0.95);
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
+        }
+        
+        /* Модальное окно выбора бизнеса */
+        .business-select-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .business-select-content {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+            border: 1px solid #c9a87b;
+        }
+        body.theme-gta .business-select-content {
+            background: #1e293b;
+            border-color: #f59e0b;
+        }
+        .business-select-content h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+        .business-select-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .business-select-item {
+            padding: 0.8rem 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+        body.theme-gta .business-select-item {
+            background: #0f1724;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        .business-select-item:hover {
+            background: #c9a87b20;
+            border-color: #c9a87b;
+            transform: translateX(5px);
+        }
+        .business-select-item strong {
+            display: block;
+            font-size: 1rem;
+        }
+        .business-select-item small {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        body.theme-gta .business-select-item small {
+            color: #94a3b8;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .modal-buttons button {
+            padding: 0.5rem 1rem;
+        }
+        
+        /* Модальное окно информации о бизнесе */
+        .business-info-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2001;
+            justify-content: center;
+            align-items: center;
+        }
+        .business-info-content {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            padding: 0;
+            border: 2px solid #c9a87b;
+            overflow: hidden;
+            animation: modalSlideIn 0.3s ease;
+            position: relative;
+        }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        body.theme-gta .business-info-content {
+            background: #1e293b;
+            border-color: #f59e0b;
+        }
+        .business-info-img {
+            width: 100%;
+            height: 150px;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        .business-info-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .business-info-body {
+            padding: 1.5rem;
+        }
+        .business-info-body h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.3rem;
+        }
+        .business-info-address {
+            color: #718096;
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+        }
+        body.theme-gta .business-info-address {
+            color: #94a3b8;
+        }
+        .business-info-type {
+            display: inline-block;
+            background: #c9a87b20;
+            color: #a8845a;
+            padding: 0.15rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-bottom: 0.8rem;
+        }
+        .business-info-price {
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .business-info-status {
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .close-info-modal-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-info-modal-btn:hover {
+            background: rgba(0,0,0,0.8);
+            transform: scale(1.1);
+        }
+        .admin-delete-marker-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .admin-delete-marker-btn:hover {
+            background: #b91c1c;
+        }
+        
         .filters-bar {
             display: flex;
             flex-wrap: wrap;
@@ -798,6 +1158,7 @@
             .logo { margin-right: 0; }
             .business-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
             .filters-bar { flex-direction: column; align-items: flex-start; }
+            .map-wrapper { height: 400px; }
         }
     </style>
 </head>
@@ -812,6 +1173,7 @@
             <button class="nav-btn active" data-section="home">🏠 Главная</button>
             <button class="nav-btn" data-section="laws">📜 Законы</button>
             <button class="nav-btn" data-section="business">🏢 Бизнесы</button>
+            <button class="nav-btn" data-section="map">🗺️ Карта</button>
             <button class="nav-btn" data-section="feedback">💬 Отзывы</button>
             <button class="nav-btn" data-section="meeting">📅 Запись на приём</button>
             <button class="nav-btn" data-section="employees">👥 Сотрудники</button>
@@ -916,6 +1278,35 @@
         </div>
     </div>
 
+    <!-- Вкладка с картой -->
+    <div id="map" class="section">
+        <div class="card">
+            <h2>🗺️ Карта штата Сан-Андреас</h2>
+            <p>Интерактивная карта города. 
+                🖱️ <strong>Управление:</strong> перетаскивайте карту зажатой левой кнопкой, масштабируйте колёсиком мыши или кнопками +/−. 
+                <span class="admin-only" style="color: #a8845a;">👑 Администратор: перетащите любой маркер мышкой, чтобы изменить его положение. Нажмите кнопку «📍», затем кликните по карте — выберите бизнес из списка для привязки.</span>
+            </p>
+            <div class="map-wrapper" id="mapWrapper">
+                <div class="map-container" id="mapContainer">
+                    <div class="map-image-wrapper" id="mapImageWrapper">
+                        <img id="gtaMapImage" src="https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV-HD-MAP-satellite.jpg" alt="Карта Сан-Андреас" draggable="false">
+                        <div id="markersLayer" class="markers-layer"></div>
+                    </div>
+                </div>
+                <div class="map-controls-left admin-only">
+                    <button class="map-btn" id="pickLocationBtn" title="Привязать бизнес к месту на карте">📍</button>
+                </div>
+                <div class="map-controls">
+                    <button class="map-btn zoom-btn" id="zoomInBtn" title="Приблизить">+</button>
+                    <button class="map-btn zoom-btn" id="zoomOutBtn" title="Отдалить">−</button>
+                </div>
+            </div>
+            <div class="map-coords-info">
+                📍 <strong>Совет:</strong> Нажмите «📍», затем кликните по карте — выберите бизнес из списка, и маркер появится в выбранном месте. Администратор может перетащить любой маркер для корректировки позиции.
+            </div>
+        </div>
+    </div>
+
     <div id="feedback" class="section">
         <div class="card">
             <h2>💬 Оставить отзыв о работе мэрии</h2>
@@ -976,6 +1367,35 @@
     </div>
     
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
+</div>
+
+<!-- Модальное окно выбора бизнеса -->
+<div id="businessSelectModal" class="business-select-modal">
+    <div class="business-select-content">
+        <h3>🏢 Выберите бизнес</h3>
+        <div id="businessSelectList" class="business-select-list">
+            <!-- Список бизнесов будет заполнен динамически -->
+        </div>
+        <div class="modal-buttons">
+            <button id="cancelBusinessSelect" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно информации о бизнесе -->
+<div id="businessInfoModal" class="business-info-modal">
+    <div class="business-info-content">
+        <div class="close-info-modal-btn" id="closeInfoModalBtn">&times;</div>
+        <div id="businessInfoImg" class="business-info-img"></div>
+        <div class="business-info-body">
+            <h3 id="businessInfoName"></h3>
+            <div class="business-info-address" id="businessInfoAddress"></div>
+            <div><span class="business-info-type" id="businessInfoType"></span></div>
+            <div class="business-info-price" id="businessInfoPrice"></div>
+            <div><span class="business-info-status" id="businessInfoStatus"></span></div>
+            <button id="deleteMarkerBtn" class="admin-delete-marker-btn admin-only">🗑️ Удалить маркер</button>
+        </div>
+    </div>
 </div>
 
 <!-- Модальные окна -->
@@ -1115,17 +1535,451 @@
     let currentBizId = null;
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
+    let currentBusinessForDelete = null;
     let unsubscribeFunctions = [];
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
+    
+    // Переменные для карты
+    let currentScale = 1;
+    const scaleStep = 0.1;
+    const minScale = 1.0;  // Минимальный масштаб = 1x (нельзя уменьшить)
+    const maxScale = 3.0;   // Максимальный масштаб = 3x
+    
+    // Переменные для перетаскивания карты
+    let isDraggingMap = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let scrollStartLeft = 0;
+    let scrollStartTop = 0;
+    
+    // Переменные для перетаскивания маркера
+    let draggedMarker = null;
+    let draggedMarkerBusinessId = null;
+    let dragStartMarkerX = 0;
+    let dragStartMarkerY = 0;
+    let originalLeft = 0;
+    let originalTop = 0;
+    let isDraggingMarker = false;
+    
+    // Переменные для режима выбора места
+    let pickLocationMode = false;
+    let pendingCoords = null;
+    
+    // DOM элементы
+    let markersLayer = null;
+    let mapImage = null;
+    let mapImageWrapper = null;
+    let mapWrapper = null;
+    let mapContainer = null;
+    
+    // Иконки для маркеров по типам
+    const markerIcons = {
+        "СТО": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586497782546586/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=70926f9bf3af52769914ab415050c8715597467e10ab2b126754caa75d2f8b98&",
+        "Клуб": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586498050986024/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=9a92ec9d4a64af1eacdd4fefd6872719e0538773439b3ee0f825545fc6449e23&",
+        "Ресторан/Кафе": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586497510178987/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=92ac78fca59f1d159977c5d6f0b21f5be019aae2ff6efbeedd0d8601d735d24b&",
+        "Остальное": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586498399371354/-Photoroom.png?ex=69ee0f9d&is=69ecbe1d&hm=c628153dd5f1b03f73eec7fbbf9071ec507a97f2a64d0b32e6e291881bea687b&"
+    };
+    
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 2000);
+    }
+    
+    function showBusinessInfoModal(business) {
+        currentBusinessForDelete = business;
+        const modal = document.getElementById('businessInfoModal');
+        const imgContainer = document.getElementById('businessInfoImg');
+        const nameEl = document.getElementById('businessInfoName');
+        const addressEl = document.getElementById('businessInfoAddress');
+        const typeEl = document.getElementById('businessInfoType');
+        const priceEl = document.getElementById('businessInfoPrice');
+        const statusEl = document.getElementById('businessInfoStatus');
+        
+        const typeDisplay = getTypeDisplay(business.type);
+        const statusUI = getStatusUI(business.status);
+        
+        imgContainer.innerHTML = business.imgUrl ? `<img src="${business.imgUrl}" alt="${business.name}">` : `<div style="font-size: 4rem;">${business.imgIcon || '🏢'}</div>`;
+        nameEl.textContent = business.name;
+        addressEl.textContent = business.address;
+        typeEl.textContent = typeDisplay;
+        priceEl.textContent = `💰 Аренда: ${business.price}`;
+        statusEl.textContent = statusUI.text;
+        statusEl.className = `business-info-status ${statusUI.class}`;
+        
+        modal.style.display = 'flex';
+        
+        document.getElementById('closeInfoModalBtn').onclick = () => {
+            modal.style.display = 'none';
+            currentBusinessForDelete = null;
+        };
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                currentBusinessForDelete = null;
+            }
+        };
+        
+        const deleteBtn = document.getElementById('deleteMarkerBtn');
+        if (deleteBtn) {
+            deleteBtn.onclick = async () => {
+                if (confirm(`Удалить маркер у бизнеса "${business.name}"?`)) {
+                    await db.collection('businesses').doc(business.id).update({
+                        mapX: null,
+                        mapY: null
+                    });
+                    modal.style.display = 'none';
+                    currentBusinessForDelete = null;
+                    showToast(`🗑️ Маркер бизнеса "${business.name}" удалён с карты`);
+                    loadAllData();
+                }
+            };
+        }
+    }
+    
+    function updateMapScale() {
+        if (mapImageWrapper) {
+            mapImageWrapper.style.transform = `scale(${currentScale})`;
+            mapImageWrapper.style.transformOrigin = 'top left';
+            
+            if (mapContainer) {
+                const newWidth = mapImageWrapper.offsetWidth;
+                const newHeight = mapImageWrapper.offsetHeight;
+                mapContainer.style.width = `${newWidth}px`;
+                mapContainer.style.height = `${newHeight}px`;
+            }
+        }
+        setTimeout(() => updateMapMarkers(), 50);
+    }
+    
+    function zoomIn() {
+        if (currentScale < maxScale) {
+            currentScale += scaleStep;
+            updateMapScale();
+        }
+    }
+    
+    function zoomOut() {
+        if (currentScale > minScale) {
+            currentScale -= scaleStep;
+            updateMapScale();
+        }
+    }
+    
+    function startDragMap(e) {
+        if (pickLocationMode || isDraggingMarker) return;
+        if (e.target === mapImageWrapper || mapImageWrapper.contains(e.target)) {
+            isDraggingMap = true;
+            mapWrapper.classList.add('dragging');
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            scrollStartLeft = mapWrapper.scrollLeft;
+            scrollStartTop = mapWrapper.scrollTop;
+            e.preventDefault();
+        }
+    }
+    
+    function onDragMap(e) {
+        if (!isDraggingMap) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        mapWrapper.scrollLeft = scrollStartLeft - dx;
+        mapWrapper.scrollTop = scrollStartTop - dy;
+        setTimeout(() => updateMapMarkers(), 10);
+    }
+    
+    function stopDragMap() {
+        if (!isDraggingMap) return;
+        isDraggingMap = false;
+        mapWrapper.classList.remove('dragging');
+    }
+    
+    function updateMapMarkers() {
+        if (!markersLayer || !mapImage || !mapImageWrapper) return;
+        
+        const rect = mapImage.getBoundingClientRect();
+        const wrapperRect = mapImageWrapper.getBoundingClientRect();
+        const scrollLeft = mapWrapper.scrollLeft;
+        const scrollTop = mapWrapper.scrollTop;
+        
+        const offsetX = rect.left - wrapperRect.left + scrollLeft;
+        const offsetY = rect.top - wrapperRect.top + scrollTop;
+        
+        businessesData.forEach(business => {
+            let markerDiv = document.getElementById(`marker_${business.id}`);
+            if (business.mapX !== undefined && business.mapY !== undefined && business.mapX !== null && business.mapY !== null) {
+                const left = offsetX + (business.mapX / 100) * rect.width;
+                const top = offsetY + (business.mapY / 100) * rect.height;
+                const iconUrl = markerIcons[business.type] || markerIcons["Остальное"];
+                
+                if (markerDiv && (!isDraggingMarker || draggedMarkerBusinessId !== business.id)) {
+                    markerDiv.style.left = left + 'px';
+                    markerDiv.style.top = top + 'px';
+                    markerDiv.style.backgroundImage = `url('${iconUrl}')`;
+                } else if (!markerDiv) {
+                    markerDiv = document.createElement('div');
+                    markerDiv.id = `marker_${business.id}`;
+                    markerDiv.className = 'map-marker';
+                    markerDiv.style.left = left + 'px';
+                    markerDiv.style.top = top + 'px';
+                    markerDiv.style.backgroundImage = `url('${iconUrl}')`;
+                    markerDiv.style.backgroundSize = 'contain';
+                    markerDiv.style.backgroundRepeat = 'no-repeat';
+                    markerDiv.style.backgroundPosition = 'center';
+                    markerDiv.style.position = 'absolute';
+                    markerDiv.style.pointerEvents = 'auto';
+                    markerDiv.style.zIndex = '20';
+                    
+                    if (isAdmin) {
+                        markerDiv.style.cursor = 'grab';
+                        markerDiv.addEventListener('mousedown', (e) => startDragMarker(e, business.id, markerDiv));
+                    } else {
+                        markerDiv.style.cursor = 'pointer';
+                    }
+                    
+                    markerDiv.addEventListener('click', (e) => {
+                        if (!isDraggingMarker) {
+                            e.stopPropagation();
+                            showBusinessInfoModal(business);
+                        }
+                    });
+                    
+                    markersLayer.appendChild(markerDiv);
+                }
+            } else if (markerDiv) {
+                markerDiv.remove();
+            }
+        });
+    }
+    
+    function startDragMarker(e, businessId, markerElement) {
+        if (!isAdmin || pickLocationMode) return;
+        e.stopPropagation();
+        isDraggingMarker = true;
+        draggedMarker = markerElement;
+        draggedMarkerBusinessId = businessId;
+        draggedMarker.classList.add('dragging');
+        
+        const rect = markerElement.getBoundingClientRect();
+        dragStartMarkerX = e.clientX;
+        dragStartMarkerY = e.clientY;
+        originalLeft = parseFloat(markerElement.style.left);
+        originalTop = parseFloat(markerElement.style.top);
+        
+        document.addEventListener('mousemove', onDragMarker);
+        document.addEventListener('mouseup', stopDragMarker);
+        e.preventDefault();
+    }
+    
+    function onDragMarker(e) {
+        if (!isDraggingMarker || !draggedMarker) return;
+        
+        const dx = e.clientX - dragStartMarkerX;
+        const dy = e.clientY - dragStartMarkerY;
+        
+        let newLeft = originalLeft + dx;
+        let newTop = originalTop + dy;
+        
+        draggedMarker.style.left = newLeft + 'px';
+        draggedMarker.style.top = newTop + 'px';
+        
+        const imgRect = mapImage.getBoundingClientRect();
+        const wrapperRect = mapImageWrapper.getBoundingClientRect();
+        const scrollLeft = mapWrapper.scrollLeft;
+        const scrollTop = mapWrapper.scrollTop;
+        
+        const offsetX = imgRect.left - wrapperRect.left + scrollLeft;
+        const offsetY = imgRect.top - wrapperRect.top + scrollTop;
+        
+        const imgX = newLeft - offsetX;
+        const imgY = newTop - offsetY;
+        
+        let percentX = (imgX / imgRect.width) * 100;
+        let percentY = (imgY / imgRect.height) * 100;
+        
+        if (percentX >= 0 && percentX <= 100 && percentY >= 0 && percentY <= 100) {
+            draggedMarker.dataset.newX = Math.min(100, Math.max(0, percentX));
+            draggedMarker.dataset.newY = Math.min(100, Math.max(0, percentY));
+        }
+    }
+    
+    async function stopDragMarker() {
+        if (!isDraggingMarker || !draggedMarker) return;
+        
+        if (draggedMarker.dataset.newX !== undefined && draggedMarker.dataset.newY !== undefined) {
+            const newX = parseFloat(draggedMarker.dataset.newX);
+            const newY = parseFloat(draggedMarker.dataset.newY);
+            await db.collection('businesses').doc(draggedMarkerBusinessId).update({
+                mapX: newX,
+                mapY: newY
+            });
+            showToast(`📍 Маркер "${businessesData.find(b => b.id === draggedMarkerBusinessId)?.name}" перемещён`);
+            delete draggedMarker.dataset.newX;
+            delete draggedMarker.dataset.newY;
+        }
+        
+        draggedMarker.classList.remove('dragging');
+        draggedMarker = null;
+        draggedMarkerBusinessId = null;
+        isDraggingMarker = false;
+        
+        document.removeEventListener('mousemove', onDragMarker);
+        document.removeEventListener('mouseup', stopDragMarker);
+        
+        loadAllData();
+    }
+    
+    function getClickCoordinates(e) {
+        const imgRect = mapImage.getBoundingClientRect();
+        const wrapperRect = mapImageWrapper.getBoundingClientRect();
+        const scrollLeft = mapWrapper.scrollLeft;
+        const scrollTop = mapWrapper.scrollTop;
+        
+        const clickX = e.clientX - wrapperRect.left + scrollLeft;
+        const clickY = e.clientY - wrapperRect.top + scrollTop;
+        const offsetX = imgRect.left - wrapperRect.left + scrollLeft;
+        const offsetY = imgRect.top - wrapperRect.top + scrollTop;
+        
+        const imgX = clickX - offsetX;
+        const imgY = clickY - offsetY;
+        
+        let percentX = (imgX / imgRect.width) * 100;
+        let percentY = (imgY / imgRect.height) * 100;
+        percentX = Math.max(0, Math.min(100, percentX));
+        percentY = Math.max(0, Math.min(100, percentY));
+        return { x: percentX, y: percentY };
+    }
+    
+    function showBusinessSelectModal(coords) {
+        if (!isAdmin) return;
+        pendingCoords = coords;
+        const modal = document.getElementById('businessSelectModal');
+        const listContainer = document.getElementById('businessSelectList');
+        
+        listContainer.innerHTML = '';
+        businessesData.forEach(business => {
+            const item = document.createElement('div');
+            item.className = 'business-select-item';
+            item.innerHTML = `<strong>${escapeHtml(business.name)}</strong><small>${escapeHtml(business.address)} | ${getTypeDisplay(business.type)}</small>`;
+            item.addEventListener('click', async () => {
+                await db.collection('businesses').doc(business.id).update({
+                    mapX: pendingCoords.x,
+                    mapY: pendingCoords.y
+                });
+                modal.style.display = 'none';
+                pickLocationMode = false;
+                const btn = document.getElementById('pickLocationBtn');
+                if (btn) btn.classList.remove('active');
+                showToast(`✅ Бизнес "${business.name}" привязан к выбранному месту на карте!`);
+                loadAllData();
+            });
+            listContainer.appendChild(item);
+        });
+        
+        if (businessesData.length === 0) {
+            listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Нет бизнесов для привязки. Сначала создайте бизнес.</div>';
+        }
+        
+        modal.style.display = 'flex';
+    }
+    
+    function enablePickLocationMode() {
+        if (!isAdmin) return;
+        pickLocationMode = true;
+        mapImage.style.cursor = 'crosshair';
+        const btn = document.getElementById('pickLocationBtn');
+        btn.classList.add('active');
+        showToast('📍 Режим привязки бизнеса активирован. Кликните по карте для выбора места.');
+    }
+    
+    function disablePickLocationMode() {
+        pickLocationMode = false;
+        mapImage.style.cursor = 'crosshair';
+        const btn = document.getElementById('pickLocationBtn');
+        if (btn) btn.classList.remove('active');
+    }
+    
+    function setupMapClicks() {
+        if (!mapImage) return;
+        mapImage.addEventListener('click', async (e) => {
+            if (!isAdmin) return;
+            if (pickLocationMode) {
+                const coords = getClickCoordinates(e);
+                disablePickLocationMode();
+                showBusinessSelectModal(coords);
+            }
+        });
+    }
+    
+    function setupPickLocationButton() {
+        const btn = document.getElementById('pickLocationBtn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                if (pickLocationMode) {
+                    disablePickLocationMode();
+                    showToast('📍 Режим привязки бизнеса отключён');
+                } else {
+                    enablePickLocationMode();
+                }
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && pickLocationMode) {
+                disablePickLocationMode();
+                showToast('📍 Режим привязки бизнеса отключён');
+            }
+        });
+        const cancelBtn = document.getElementById('cancelBusinessSelect');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                document.getElementById('businessSelectModal').style.display = 'none';
+                pendingCoords = null;
+            });
+        }
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('businessSelectModal');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                pendingCoords = null;
+            }
+        });
+    }
+    
+    function setupMapWheelZoom() {
+        if (!mapWrapper) return;
+        mapWrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        }, { passive: false });
+    }
+    
+    function setupMapDrag() {
+        if (!mapWrapper) return;
+        mapWrapper.addEventListener('mousedown', startDragMap);
+        window.addEventListener('mousemove', onDragMap);
+        window.addEventListener('mouseup', stopDragMap);
+    }
+    
+    function refreshMap() {
+        setTimeout(() => updateMapMarkers(), 100);
+    }
 
     function setupRealtimeListeners() {
         if (unsubscribeFunctions.length) {
             unsubscribeFunctions.forEach(unsub => unsub());
             unsubscribeFunctions = [];
         }
-        unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => { loadAllData(); refreshMap(); }));
         unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
@@ -1146,7 +2000,9 @@
                 imgIcon: data.imgIcon,
                 imgUrl: data.imgUrl,
                 price: data.price,
-                status: data.status
+                status: data.status,
+                mapX: data.mapX,
+                mapY: data.mapY
             });
         });
         
@@ -1217,8 +2073,8 @@
                 date: data.date
             });
         });
-        
         renderAll();
+        refreshMap();
     }
 
     function renderAll() {
@@ -1259,18 +2115,14 @@
         if(!grid) return;
         
         let filteredBusinesses = businessesData;
-        if (currentStatusFilter !== "all") {
-            filteredBusinesses = filteredBusinesses.filter(b => b.status === currentStatusFilter);
-        }
-        if (currentTypeFilter !== "all") {
-            filteredBusinesses = filteredBusinesses.filter(b => b.type === currentTypeFilter);
-        }
+        if (currentStatusFilter !== "all") filteredBusinesses = filteredBusinesses.filter(b => b.status === currentStatusFilter);
+        if (currentTypeFilter !== "all") filteredBusinesses = filteredBusinesses.filter(b => b.type === currentTypeFilter);
         
         grid.innerHTML = filteredBusinesses.map(biz => {
             const statusUI = getStatusUI(biz.status);
             const typeDisplay = getTypeDisplay(biz.type);
             const imgHtml = biz.imgUrl ? `<img src="${biz.imgUrl}" alt="${biz.name}">` : `<div style="font-size: 3.5rem;">${biz.imgIcon || '🏢'}</div>`;
-            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select>` : ''}</div></div>`;
+            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select><div class="admin-only" style="margin-top: 0.5rem; font-size: 0.7rem; color: #718096;">${biz.mapX && biz.mapY ? `📍 Карта: ${biz.mapX.toFixed(1)}%, ${biz.mapY.toFixed(1)}%` : '📍 Координаты не заданы'}</div>` : ''}</div></div>`;
         }).join('');
         
         if(isAdmin) {
@@ -1403,7 +2255,7 @@
     function initAddBusinessModal() {
         const modal = document.getElementById("addBusinessModal"), saveBtn = document.getElementById("addBizSave"), cancelBtn = document.getElementById("addBizCancel");
         saveBtn.addEventListener("click", async () => { 
-            const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value; 
+            const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value;
             if(!name || !address || !price) { alert("Заполните все поля"); return; } 
             const newId = Date.now().toString(); 
             await db.collection('businesses').doc(newId).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null }); 
@@ -1439,6 +2291,8 @@
             renderAll();
             if(adminBlock) adminBlock.style.display = "block"; if(adminNewsBlock) adminNewsBlock.style.display = "block"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "block"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "block";
             setActiveSection("meeting");
+            setupMapClicks();
+            refreshMap();
         } else {
             body.classList.remove('admin-mode');
             const authArea = document.getElementById("authArea");
@@ -1447,6 +2301,7 @@
             if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
             renderAll();
         }
+        updateMapMarkers();
     }
 
     function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
@@ -1486,6 +2341,12 @@
         const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
         if(activeBtn) activeBtn.classList.add("active");
         localStorage.setItem("activeSection", sectionId);
+        if (sectionId === "map") {
+            setTimeout(() => {
+                updateMapMarkers();
+                if (isAdmin) setupMapClicks();
+            }, 200);
+        }
     }
 
     function initNavigation() {
@@ -1498,6 +2359,29 @@
     function initEnterLogin() {
         const passwordInput = document.getElementById("adminPassword");
         if(passwordInput) { passwordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkAdminLogin(); }); }
+    }
+
+    function initMap() {
+        markersLayer = document.getElementById('markersLayer');
+        mapImage = document.getElementById('gtaMapImage');
+        mapImageWrapper = document.getElementById('mapImageWrapper');
+        mapWrapper = document.getElementById('mapWrapper');
+        mapContainer = document.getElementById('mapContainer');
+        
+        if (!markersLayer || !mapImage || !mapImageWrapper || !mapWrapper) return;
+        
+        mapImage.addEventListener('load', () => {
+            updateMapScale();
+            updateMapMarkers();
+        });
+        
+        document.getElementById('zoomInBtn')?.addEventListener('click', zoomIn);
+        document.getElementById('zoomOutBtn')?.addEventListener('click', zoomOut);
+        setupMapWheelZoom();
+        setupMapDrag();
+        setupPickLocationButton();
+        updateMapScale();
+        updateMapMarkers();
     }
 
     setupRealtimeListeners();
@@ -1514,6 +2398,8 @@
     initFilters();
     initTheme();
     loadAdminStatus();
+    initMap();
+    
     document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
     document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
     document.getElementById("closeModal")?.addEventListener("click", hideLoginModal);
