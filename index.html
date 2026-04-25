@@ -419,7 +419,7 @@
             height: 550px;
             background: #1a1f2e;
             border-radius: 16px;
-            overflow: auto;
+            overflow: hidden;
             cursor: grab;
         }
         .map-wrapper.dragging {
@@ -427,38 +427,30 @@
         }
         .map-container {
             position: relative;
-            display: inline-block;
-            min-width: 100%;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
         .map-image-wrapper {
-            position: relative;
-            display: inline-block;
-            transform-origin: top left;
+            position: absolute;
+            cursor: grab;
+            transform-origin: 0 0;
+        }
+        .map-image-wrapper.dragging {
+            cursor: grabbing;
         }
         #gtaMapImage {
             display: block;
-            width: 100%;
-            height: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            cursor: crosshair;
+            width: 8192px;
+            height: 8192px;
+            object-fit: contain;
             user-select: none;
-            -webkit-user-drag: none;
             pointer-events: auto;
         }
         .map-controls {
             position: absolute;
             bottom: 20px;
             right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 30;
-        }
-        .map-controls-left {
-            position: absolute;
-            top: 20px;
-            left: 20px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -486,52 +478,17 @@
             color: #1a1f2e;
             transform: scale(1.05);
         }
-        .map-btn.active {
-            background: #c9a87b;
-            color: #1a1f2e;
-            box-shadow: 0 0 12px #c9a87b;
+        .zoom-btn {
+            font-size: 24px;
         }
         body.theme-gta .map-btn {
             background: rgba(15, 23, 36, 0.9);
             border-color: #f59e0b;
             color: #f59e0b;
         }
-        body.theme-gta .map-btn:hover, body.theme-gta .map-btn.active {
+        body.theme-gta .map-btn:hover {
             background: #f59e0b;
             color: #0f1724;
-        }
-        .zoom-btn {
-            font-size: 24px;
-        }
-        .markers-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        .map-marker {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            cursor: grab;
-            transition: filter 0.1s, transform 0.1s;
-            pointer-events: auto;
-            z-index: 20;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-        }
-        .map-marker.dragging {
-            cursor: grabbing;
-            z-index: 100;
-            filter: brightness(1.2) drop-shadow(0 0 4px white);
-            transform: scale(1.2);
-        }
-        .map-marker:hover {
-            filter: brightness(1.1) drop-shadow(0 0 2px white);
-            transform: scale(1.15);
         }
         .map-coords-info {
             margin-top: 1rem;
@@ -575,201 +532,6 @@
             15% { opacity: 1; transform: translateX(-50%) translateY(0); }
             85% { opacity: 1; transform: translateX(-50%) translateY(0); }
             100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
-        }
-        
-        /* Модальное окно выбора бизнеса */
-        .business-select-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .business-select-content {
-            background: #ffffff;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: 2rem;
-            border: 1px solid #c9a87b;
-        }
-        body.theme-gta .business-select-content {
-            background: #1e293b;
-            border-color: #f59e0b;
-        }
-        .business-select-content h3 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-        }
-        .business-select-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .business-select-item {
-            padding: 0.8rem 1rem;
-            background: #f8f9fa;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e2e8f0;
-        }
-        body.theme-gta .business-select-item {
-            background: #0f1724;
-            border-color: #334155;
-            color: #e2e8f0;
-        }
-        .business-select-item:hover {
-            background: #c9a87b20;
-            border-color: #c9a87b;
-            transform: translateX(5px);
-        }
-        .business-select-item strong {
-            display: block;
-            font-size: 1rem;
-        }
-        .business-select-item small {
-            font-size: 0.75rem;
-            color: #718096;
-        }
-        body.theme-gta .business-select-item small {
-            color: #94a3b8;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        .modal-buttons button {
-            padding: 0.5rem 1rem;
-        }
-        
-        /* Модальное окно информации о бизнесе */
-        .business-info-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 2001;
-            justify-content: center;
-            align-items: center;
-        }
-        .business-info-content {
-            background: #ffffff;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 450px;
-            padding: 0;
-            border: 2px solid #c9a87b;
-            overflow: hidden;
-            animation: modalSlideIn 0.3s ease;
-            position: relative;
-        }
-        @keyframes modalSlideIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        body.theme-gta .business-info-content {
-            background: #1e293b;
-            border-color: #f59e0b;
-        }
-        .business-info-img {
-            width: 100%;
-            height: 150px;
-            background-color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 4rem;
-        }
-        .business-info-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .business-info-body {
-            padding: 1.5rem;
-        }
-        .business-info-body h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1.3rem;
-        }
-        .business-info-address {
-            color: #718096;
-            font-size: 0.85rem;
-            margin-bottom: 0.8rem;
-        }
-        body.theme-gta .business-info-address {
-            color: #94a3b8;
-        }
-        .business-info-type {
-            display: inline-block;
-            background: #c9a87b20;
-            color: #a8845a;
-            padding: 0.15rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            margin-bottom: 0.8rem;
-        }
-        .business-info-price {
-            font-weight: bold;
-            margin: 0.5rem 0;
-        }
-        .business-info-status {
-            display: inline-block;
-            padding: 0.2rem 1rem;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
-        }
-        .close-info-modal-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: white;
-            background: rgba(0,0,0,0.5);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .close-info-modal-btn:hover {
-            background: rgba(0,0,0,0.8);
-            transform: scale(1.1);
-        }
-        .admin-delete-marker-btn {
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-top: 1rem;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        .admin-delete-marker-btn:hover {
-            background: #b91c1c;
         }
         
         .filters-bar {
@@ -1159,6 +921,7 @@
             .business-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
             .filters-bar { flex-direction: column; align-items: flex-start; }
             .map-wrapper { height: 400px; }
+            #gtaMapImage { width: 4096px; height: 4096px; }
         }
     </style>
 </head>
@@ -1282,27 +1045,20 @@
     <div id="map" class="section">
         <div class="card">
             <h2>🗺️ Карта штата Сан-Андреас</h2>
-            <p>Интерактивная карта города. 
-                🖱️ <strong>Управление:</strong> перетаскивайте карту зажатой левой кнопкой, масштабируйте колёсиком мыши или кнопками +/−. 
-                <span class="admin-only" style="color: #a8845a;">👑 Администратор: перетащите любой маркер мышкой, чтобы изменить его положение. Нажмите кнопку «📍», затем кликните по карте — выберите бизнес из списка для привязки.</span>
-            </p>
+            <p>🖱️ <strong>Управление:</strong> перетаскивайте карту зажатой левой кнопкой, масштабируйте колёсиком мыши или кнопками +/−.</p>
             <div class="map-wrapper" id="mapWrapper">
                 <div class="map-container" id="mapContainer">
                     <div class="map-image-wrapper" id="mapImageWrapper">
-                        <img id="gtaMapImage" src="https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV-HD-MAP-satellite.jpg" alt="Карта Сан-Андреас" draggable="false">
-                        <div id="markersLayer" class="markers-layer"></div>
+                        <img id="gtaMapImage" src="https://cdn.discordapp.com/attachments/1497218767397322782/1497734351990030547/95086422aa2ccb1e.jpg?ex=69ee9950&is=69ed47d0&hm=4841dcb286192d260aeedc31933b564be5202264bd1f9d7a78d72bbaecb4e007&" alt="Карта Сан-Андреас" draggable="false">
                     </div>
                 </div>
-                <div class="map-controls-left admin-only">
-                    <button class="map-btn" id="pickLocationBtn" title="Привязать бизнес к месту на карте">📍</button>
-                </div>
                 <div class="map-controls">
-                    <button class="map-btn zoom-btn" id="zoomInBtn" title="Приблизить">+</button>
-                    <button class="map-btn zoom-btn" id="zoomOutBtn" title="Отдалить">−</button>
+                    <button class="map-btn zoom-btn" id="zoomInBtn">+</button>
+                    <button class="map-btn zoom-btn" id="zoomOutBtn">−</button>
                 </div>
             </div>
             <div class="map-coords-info">
-                📍 <strong>Совет:</strong> Нажмите «📍», затем кликните по карте — выберите бизнес из списка, и маркер появится в выбранном месте. Администратор может перетащить любой маркер для корректировки позиции.
+                📍 Перетаскивайте карту для обзора. Используйте +/− или колёсико мыши для масштабирования.
             </div>
         </div>
     </div>
@@ -1367,35 +1123,6 @@
     </div>
     
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
-</div>
-
-<!-- Модальное окно выбора бизнеса -->
-<div id="businessSelectModal" class="business-select-modal">
-    <div class="business-select-content">
-        <h3>🏢 Выберите бизнес</h3>
-        <div id="businessSelectList" class="business-select-list">
-            <!-- Список бизнесов будет заполнен динамически -->
-        </div>
-        <div class="modal-buttons">
-            <button id="cancelBusinessSelect" style="background: #9b2c2c; color: white;">Отмена</button>
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно информации о бизнесе -->
-<div id="businessInfoModal" class="business-info-modal">
-    <div class="business-info-content">
-        <div class="close-info-modal-btn" id="closeInfoModalBtn">&times;</div>
-        <div id="businessInfoImg" class="business-info-img"></div>
-        <div class="business-info-body">
-            <h3 id="businessInfoName"></h3>
-            <div class="business-info-address" id="businessInfoAddress"></div>
-            <div><span class="business-info-type" id="businessInfoType"></span></div>
-            <div class="business-info-price" id="businessInfoPrice"></div>
-            <div><span class="business-info-status" id="businessInfoStatus"></span></div>
-            <button id="deleteMarkerBtn" class="admin-delete-marker-btn admin-only">🗑️ Удалить маркер</button>
-        </div>
-    </div>
 </div>
 
 <!-- Модальные окна -->
@@ -1509,7 +1236,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Хэш пароля "admin"
     const ADMIN_PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
     async function hashPassword(password) {
@@ -1535,52 +1261,220 @@
     let currentBizId = null;
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
-    let currentBusinessForDelete = null;
     let unsubscribeFunctions = [];
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
     
-    // Переменные для карты
+    // ========== КАРТА С СОХРАНЕНИЕМ СОСТОЯНИЯ ==========
+    const MAP_WIDTH = 8192;
+    const MAP_HEIGHT = 8192;
+    
+    const STORAGE_KEY = 'cityhall_map_state';
+    
+    // Загрузка сохранённого состояния карты
+    function loadMapState() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                return {
+                    scale: state.scale !== undefined ? state.scale : 0.15,
+                    translateX: state.translateX !== undefined ? state.translateX : 0,
+                    translateY: state.translateY !== undefined ? state.translateY : 0
+                };
+            } catch(e) {
+                console.warn('Ошибка загрузки состояния карты', e);
+            }
+        }
+        // Значения по умолчанию: отдалено (0.15) и прокручено вниз
+        return {
+            scale: 0.15,
+            translateX: 0,
+            translateY: -8192 * 0.15 / 2  // Сдвиг вниз на половину высоты при масштабе 0.15
+        };
+    }
+    
+    // Сохранение состояния карты
+    function saveMapState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            scale: currentScale,
+            translateX: translateX,
+            translateY: translateY
+        }));
+    }
+    
     let currentScale = 1;
     const scaleStep = 0.1;
-    const minScale = 1.0;  // Минимальный масштаб = 1x (нельзя уменьшить)
-    const maxScale = 3.0;   // Максимальный масштаб = 3x
+    let minScale = 0.15;
+    let maxScale = 5.0;
     
-    // Переменные для перетаскивания карты
+    let translateX = 0;
+    let translateY = 0;
+    
     let isDraggingMap = false;
     let dragStartX = 0;
     let dragStartY = 0;
-    let scrollStartLeft = 0;
-    let scrollStartTop = 0;
+    let dragStartTranslateX = 0;
+    let dragStartTranslateY = 0;
     
-    // Переменные для перетаскивания маркера
-    let draggedMarker = null;
-    let draggedMarkerBusinessId = null;
-    let dragStartMarkerX = 0;
-    let dragStartMarkerY = 0;
-    let originalLeft = 0;
-    let originalTop = 0;
-    let isDraggingMarker = false;
-    
-    // Переменные для режима выбора места
-    let pickLocationMode = false;
-    let pendingCoords = null;
-    
-    // DOM элементы
-    let markersLayer = null;
     let mapImage = null;
     let mapImageWrapper = null;
     let mapWrapper = null;
-    let mapContainer = null;
+    let isMapInitialized = false;
     
-    // Иконки для маркеров по типам
-    const markerIcons = {
-        "СТО": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586497782546586/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=70926f9bf3af52769914ab415050c8715597467e10ab2b126754caa75d2f8b98&",
-        "Клуб": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586498050986024/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=9a92ec9d4a64af1eacdd4fefd6872719e0538773439b3ee0f825545fc6449e23&",
-        "Ресторан/Кафе": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586497510178987/-Photoroom.png?ex=69ee0f9c&is=69ecbe1c&hm=92ac78fca59f1d159977c5d6f0b21f5be019aae2ff6efbeedd0d8601d735d24b&",
-        "Остальное": "https://cdn.discordapp.com/attachments/1497218767397322782/1497586498399371354/-Photoroom.png?ex=69ee0f9d&is=69ecbe1d&hm=c628153dd5f1b03f73eec7fbbf9071ec507a97f2a64d0b32e6e291881bea687b&"
-    };
+    function updateMapTransform() {
+        if (!mapImageWrapper) return;
+        
+        const wrapperWidth = mapWrapper.clientWidth;
+        const wrapperHeight = mapWrapper.clientHeight;
+        const scaledWidth = MAP_WIDTH * currentScale;
+        const scaledHeight = MAP_HEIGHT * currentScale;
+        
+        let minX = wrapperWidth - scaledWidth;
+        let minY = wrapperHeight - scaledHeight;
+        let maxX = 0;
+        let maxY = 0;
+        
+        if (scaledWidth > wrapperWidth) {
+            translateX = Math.min(maxX, Math.max(minX, translateX));
+        } else {
+            translateX = (wrapperWidth - scaledWidth) / 2;
+        }
+        
+        if (scaledHeight > wrapperHeight) {
+            translateY = Math.min(maxY, Math.max(minY, translateY));
+        } else {
+            translateY = (wrapperHeight - scaledHeight) / 2;
+        }
+        
+        mapImageWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+        
+        // Сохраняем состояние при каждом обновлении
+        saveMapState();
+    }
+    
+    function zoomAtPoint(clientX, clientY, delta) {
+        const rect = mapWrapper.getBoundingClientRect();
+        const mouseX = clientX - rect.left;
+        const mouseY = clientY - rect.top;
+        
+        const oldScale = currentScale;
+        let newScale = currentScale + delta;
+        if (newScale < minScale) newScale = minScale;
+        if (newScale > maxScale) newScale = maxScale;
+        if (newScale === oldScale) return;
+        
+        const worldX = (mouseX - translateX) / oldScale;
+        const worldY = (mouseY - translateY) / oldScale;
+        
+        currentScale = newScale;
+        translateX = mouseX - worldX * currentScale;
+        translateY = mouseY - worldY * currentScale;
+        
+        updateMapTransform();
+    }
+    
+    function zoomIn() {
+        const rect = mapWrapper.getBoundingClientRect();
+        zoomAtPoint(rect.left + rect.width / 2, rect.top + rect.height / 2, scaleStep);
+    }
+    
+    function zoomOut() {
+        const rect = mapWrapper.getBoundingClientRect();
+        zoomAtPoint(rect.left + rect.width / 2, rect.top + rect.height / 2, -scaleStep);
+    }
+    
+    function startDragMap(e) {
+        if (e.button !== 0) return;
+        isDraggingMap = true;
+        mapImageWrapper.classList.add('dragging');
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragStartTranslateX = translateX;
+        dragStartTranslateY = translateY;
+        e.preventDefault();
+    }
+    
+    function onDragMap(e) {
+        if (!isDraggingMap) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        translateX = dragStartTranslateX + dx;
+        translateY = dragStartTranslateY + dy;
+        updateMapTransform();
+    }
+    
+    function stopDragMap() {
+        if (!isDraggingMap) return;
+        isDraggingMap = false;
+        mapImageWrapper.classList.remove('dragging');
+    }
+    
+    function setupMapEvents() {
+        if (!mapWrapper) return;
+        
+        document.getElementById('zoomInBtn')?.addEventListener('click', zoomIn);
+        document.getElementById('zoomOutBtn')?.addEventListener('click', zoomOut);
+        
+        mapWrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -scaleStep : scaleStep;
+            zoomAtPoint(e.clientX, e.clientY, delta);
+        }, { passive: false });
+        
+        mapWrapper.addEventListener('mousedown', startDragMap);
+        window.addEventListener('mousemove', onDragMap);
+        window.addEventListener('mouseup', stopDragMap);
+    }
+    
+    // Инициализация карты с загрузкой сохранённого состояния
+    function initMap() {
+        if (isMapInitialized) return;
+        
+        mapImage = document.getElementById('gtaMapImage');
+        mapImageWrapper = document.getElementById('mapImageWrapper');
+        mapWrapper = document.getElementById('mapWrapper');
+        
+        if (!mapImage || !mapImageWrapper || !mapWrapper) return;
+        
+        // Загружаем сохранённое состояние
+        const savedState = loadMapState();
+        currentScale = savedState.scale;
+        translateX = savedState.translateX;
+        translateY = savedState.translateY;
+        
+        mapImage.addEventListener('load', () => {
+            updateMapTransform();
+        });
+        
+        setupMapEvents();
+        updateMapTransform();
+        isMapInitialized = true;
+    }
+    
+    // При переключении на вкладку карты — обновляем позицию (на случай, если размер контейнера изменился)
+    function refreshMap() {
+        if (mapImageWrapper && mapWrapper) {
+            updateMapTransform();
+        }
+    }
+    
+    // ========== ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений) ==========
+    function getStatusUI(status) {
+        if(status === "free") return { class: "status-free", text: "🟢 СВОБОДЕН" };
+        if(status === "occupied") return { class: "status-occupied", text: "🔴 ЗАНЯТ" };
+        return { class: "status-pending", text: "🟡 В ОБРАБОТКЕ" };
+    }
+    
+    function getTypeDisplay(type) {
+        if(type === "СТО") return "🔧 СТО";
+        if(type === "Клуб") return "🎧 Клуб";
+        if(type === "Ресторан/Кафе") return "🍽️ Ресторан/Кафе";
+        return "🏪 Остальное";
+    }
+    
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
     
     function showToast(message) {
         const toast = document.createElement('div');
@@ -1592,401 +1486,19 @@
         }, 2000);
     }
     
-    function showBusinessInfoModal(business) {
-        currentBusinessForDelete = business;
-        const modal = document.getElementById('businessInfoModal');
-        const imgContainer = document.getElementById('businessInfoImg');
-        const nameEl = document.getElementById('businessInfoName');
-        const addressEl = document.getElementById('businessInfoAddress');
-        const typeEl = document.getElementById('businessInfoType');
-        const priceEl = document.getElementById('businessInfoPrice');
-        const statusEl = document.getElementById('businessInfoStatus');
-        
-        const typeDisplay = getTypeDisplay(business.type);
-        const statusUI = getStatusUI(business.status);
-        
-        imgContainer.innerHTML = business.imgUrl ? `<img src="${business.imgUrl}" alt="${business.name}">` : `<div style="font-size: 4rem;">${business.imgIcon || '🏢'}</div>`;
-        nameEl.textContent = business.name;
-        addressEl.textContent = business.address;
-        typeEl.textContent = typeDisplay;
-        priceEl.textContent = `💰 Аренда: ${business.price}`;
-        statusEl.textContent = statusUI.text;
-        statusEl.className = `business-info-status ${statusUI.class}`;
-        
-        modal.style.display = 'flex';
-        
-        document.getElementById('closeInfoModalBtn').onclick = () => {
-            modal.style.display = 'none';
-            currentBusinessForDelete = null;
-        };
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                currentBusinessForDelete = null;
-            }
-        };
-        
-        const deleteBtn = document.getElementById('deleteMarkerBtn');
-        if (deleteBtn) {
-            deleteBtn.onclick = async () => {
-                if (confirm(`Удалить маркер у бизнеса "${business.name}"?`)) {
-                    await db.collection('businesses').doc(business.id).update({
-                        mapX: null,
-                        mapY: null
-                    });
-                    modal.style.display = 'none';
-                    currentBusinessForDelete = null;
-                    showToast(`🗑️ Маркер бизнеса "${business.name}" удалён с карты`);
-                    loadAllData();
-                }
-            };
-        }
-    }
-    
-    function updateMapScale() {
-        if (mapImageWrapper) {
-            mapImageWrapper.style.transform = `scale(${currentScale})`;
-            mapImageWrapper.style.transformOrigin = 'top left';
-            
-            if (mapContainer) {
-                const newWidth = mapImageWrapper.offsetWidth;
-                const newHeight = mapImageWrapper.offsetHeight;
-                mapContainer.style.width = `${newWidth}px`;
-                mapContainer.style.height = `${newHeight}px`;
-            }
-        }
-        setTimeout(() => updateMapMarkers(), 50);
-    }
-    
-    function zoomIn() {
-        if (currentScale < maxScale) {
-            currentScale += scaleStep;
-            updateMapScale();
-        }
-    }
-    
-    function zoomOut() {
-        if (currentScale > minScale) {
-            currentScale -= scaleStep;
-            updateMapScale();
-        }
-    }
-    
-    function startDragMap(e) {
-        if (pickLocationMode || isDraggingMarker) return;
-        if (e.target === mapImageWrapper || mapImageWrapper.contains(e.target)) {
-            isDraggingMap = true;
-            mapWrapper.classList.add('dragging');
-            dragStartX = e.clientX;
-            dragStartY = e.clientY;
-            scrollStartLeft = mapWrapper.scrollLeft;
-            scrollStartTop = mapWrapper.scrollTop;
-            e.preventDefault();
-        }
-    }
-    
-    function onDragMap(e) {
-        if (!isDraggingMap) return;
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
-        mapWrapper.scrollLeft = scrollStartLeft - dx;
-        mapWrapper.scrollTop = scrollStartTop - dy;
-        setTimeout(() => updateMapMarkers(), 10);
-    }
-    
-    function stopDragMap() {
-        if (!isDraggingMap) return;
-        isDraggingMap = false;
-        mapWrapper.classList.remove('dragging');
-    }
-    
-    function updateMapMarkers() {
-        if (!markersLayer || !mapImage || !mapImageWrapper) return;
-        
-        const rect = mapImage.getBoundingClientRect();
-        const wrapperRect = mapImageWrapper.getBoundingClientRect();
-        const scrollLeft = mapWrapper.scrollLeft;
-        const scrollTop = mapWrapper.scrollTop;
-        
-        const offsetX = rect.left - wrapperRect.left + scrollLeft;
-        const offsetY = rect.top - wrapperRect.top + scrollTop;
-        
-        businessesData.forEach(business => {
-            let markerDiv = document.getElementById(`marker_${business.id}`);
-            if (business.mapX !== undefined && business.mapY !== undefined && business.mapX !== null && business.mapY !== null) {
-                const left = offsetX + (business.mapX / 100) * rect.width;
-                const top = offsetY + (business.mapY / 100) * rect.height;
-                const iconUrl = markerIcons[business.type] || markerIcons["Остальное"];
-                
-                if (markerDiv && (!isDraggingMarker || draggedMarkerBusinessId !== business.id)) {
-                    markerDiv.style.left = left + 'px';
-                    markerDiv.style.top = top + 'px';
-                    markerDiv.style.backgroundImage = `url('${iconUrl}')`;
-                } else if (!markerDiv) {
-                    markerDiv = document.createElement('div');
-                    markerDiv.id = `marker_${business.id}`;
-                    markerDiv.className = 'map-marker';
-                    markerDiv.style.left = left + 'px';
-                    markerDiv.style.top = top + 'px';
-                    markerDiv.style.backgroundImage = `url('${iconUrl}')`;
-                    markerDiv.style.backgroundSize = 'contain';
-                    markerDiv.style.backgroundRepeat = 'no-repeat';
-                    markerDiv.style.backgroundPosition = 'center';
-                    markerDiv.style.position = 'absolute';
-                    markerDiv.style.pointerEvents = 'auto';
-                    markerDiv.style.zIndex = '20';
-                    
-                    if (isAdmin) {
-                        markerDiv.style.cursor = 'grab';
-                        markerDiv.addEventListener('mousedown', (e) => startDragMarker(e, business.id, markerDiv));
-                    } else {
-                        markerDiv.style.cursor = 'pointer';
-                    }
-                    
-                    markerDiv.addEventListener('click', (e) => {
-                        if (!isDraggingMarker) {
-                            e.stopPropagation();
-                            showBusinessInfoModal(business);
-                        }
-                    });
-                    
-                    markersLayer.appendChild(markerDiv);
-                }
-            } else if (markerDiv) {
-                markerDiv.remove();
-            }
-        });
-    }
-    
-    function startDragMarker(e, businessId, markerElement) {
-        if (!isAdmin || pickLocationMode) return;
-        e.stopPropagation();
-        isDraggingMarker = true;
-        draggedMarker = markerElement;
-        draggedMarkerBusinessId = businessId;
-        draggedMarker.classList.add('dragging');
-        
-        const rect = markerElement.getBoundingClientRect();
-        dragStartMarkerX = e.clientX;
-        dragStartMarkerY = e.clientY;
-        originalLeft = parseFloat(markerElement.style.left);
-        originalTop = parseFloat(markerElement.style.top);
-        
-        document.addEventListener('mousemove', onDragMarker);
-        document.addEventListener('mouseup', stopDragMarker);
-        e.preventDefault();
-    }
-    
-    function onDragMarker(e) {
-        if (!isDraggingMarker || !draggedMarker) return;
-        
-        const dx = e.clientX - dragStartMarkerX;
-        const dy = e.clientY - dragStartMarkerY;
-        
-        let newLeft = originalLeft + dx;
-        let newTop = originalTop + dy;
-        
-        draggedMarker.style.left = newLeft + 'px';
-        draggedMarker.style.top = newTop + 'px';
-        
-        const imgRect = mapImage.getBoundingClientRect();
-        const wrapperRect = mapImageWrapper.getBoundingClientRect();
-        const scrollLeft = mapWrapper.scrollLeft;
-        const scrollTop = mapWrapper.scrollTop;
-        
-        const offsetX = imgRect.left - wrapperRect.left + scrollLeft;
-        const offsetY = imgRect.top - wrapperRect.top + scrollTop;
-        
-        const imgX = newLeft - offsetX;
-        const imgY = newTop - offsetY;
-        
-        let percentX = (imgX / imgRect.width) * 100;
-        let percentY = (imgY / imgRect.height) * 100;
-        
-        if (percentX >= 0 && percentX <= 100 && percentY >= 0 && percentY <= 100) {
-            draggedMarker.dataset.newX = Math.min(100, Math.max(0, percentX));
-            draggedMarker.dataset.newY = Math.min(100, Math.max(0, percentY));
-        }
-    }
-    
-    async function stopDragMarker() {
-        if (!isDraggingMarker || !draggedMarker) return;
-        
-        if (draggedMarker.dataset.newX !== undefined && draggedMarker.dataset.newY !== undefined) {
-            const newX = parseFloat(draggedMarker.dataset.newX);
-            const newY = parseFloat(draggedMarker.dataset.newY);
-            await db.collection('businesses').doc(draggedMarkerBusinessId).update({
-                mapX: newX,
-                mapY: newY
-            });
-            showToast(`📍 Маркер "${businessesData.find(b => b.id === draggedMarkerBusinessId)?.name}" перемещён`);
-            delete draggedMarker.dataset.newX;
-            delete draggedMarker.dataset.newY;
-        }
-        
-        draggedMarker.classList.remove('dragging');
-        draggedMarker = null;
-        draggedMarkerBusinessId = null;
-        isDraggingMarker = false;
-        
-        document.removeEventListener('mousemove', onDragMarker);
-        document.removeEventListener('mouseup', stopDragMarker);
-        
-        loadAllData();
-    }
-    
-    function getClickCoordinates(e) {
-        const imgRect = mapImage.getBoundingClientRect();
-        const wrapperRect = mapImageWrapper.getBoundingClientRect();
-        const scrollLeft = mapWrapper.scrollLeft;
-        const scrollTop = mapWrapper.scrollTop;
-        
-        const clickX = e.clientX - wrapperRect.left + scrollLeft;
-        const clickY = e.clientY - wrapperRect.top + scrollTop;
-        const offsetX = imgRect.left - wrapperRect.left + scrollLeft;
-        const offsetY = imgRect.top - wrapperRect.top + scrollTop;
-        
-        const imgX = clickX - offsetX;
-        const imgY = clickY - offsetY;
-        
-        let percentX = (imgX / imgRect.width) * 100;
-        let percentY = (imgY / imgRect.height) * 100;
-        percentX = Math.max(0, Math.min(100, percentX));
-        percentY = Math.max(0, Math.min(100, percentY));
-        return { x: percentX, y: percentY };
-    }
-    
-    function showBusinessSelectModal(coords) {
-        if (!isAdmin) return;
-        pendingCoords = coords;
-        const modal = document.getElementById('businessSelectModal');
-        const listContainer = document.getElementById('businessSelectList');
-        
-        listContainer.innerHTML = '';
-        businessesData.forEach(business => {
-            const item = document.createElement('div');
-            item.className = 'business-select-item';
-            item.innerHTML = `<strong>${escapeHtml(business.name)}</strong><small>${escapeHtml(business.address)} | ${getTypeDisplay(business.type)}</small>`;
-            item.addEventListener('click', async () => {
-                await db.collection('businesses').doc(business.id).update({
-                    mapX: pendingCoords.x,
-                    mapY: pendingCoords.y
-                });
-                modal.style.display = 'none';
-                pickLocationMode = false;
-                const btn = document.getElementById('pickLocationBtn');
-                if (btn) btn.classList.remove('active');
-                showToast(`✅ Бизнес "${business.name}" привязан к выбранному месту на карте!`);
-                loadAllData();
-            });
-            listContainer.appendChild(item);
-        });
-        
-        if (businessesData.length === 0) {
-            listContainer.innerHTML = '<div style="text-align: center; padding: 20px;">Нет бизнесов для привязки. Сначала создайте бизнес.</div>';
-        }
-        
-        modal.style.display = 'flex';
-    }
-    
-    function enablePickLocationMode() {
-        if (!isAdmin) return;
-        pickLocationMode = true;
-        mapImage.style.cursor = 'crosshair';
-        const btn = document.getElementById('pickLocationBtn');
-        btn.classList.add('active');
-        showToast('📍 Режим привязки бизнеса активирован. Кликните по карте для выбора места.');
-    }
-    
-    function disablePickLocationMode() {
-        pickLocationMode = false;
-        mapImage.style.cursor = 'crosshair';
-        const btn = document.getElementById('pickLocationBtn');
-        if (btn) btn.classList.remove('active');
-    }
-    
-    function setupMapClicks() {
-        if (!mapImage) return;
-        mapImage.addEventListener('click', async (e) => {
-            if (!isAdmin) return;
-            if (pickLocationMode) {
-                const coords = getClickCoordinates(e);
-                disablePickLocationMode();
-                showBusinessSelectModal(coords);
-            }
-        });
-    }
-    
-    function setupPickLocationButton() {
-        const btn = document.getElementById('pickLocationBtn');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                if (pickLocationMode) {
-                    disablePickLocationMode();
-                    showToast('📍 Режим привязки бизнеса отключён');
-                } else {
-                    enablePickLocationMode();
-                }
-            });
-        }
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && pickLocationMode) {
-                disablePickLocationMode();
-                showToast('📍 Режим привязки бизнеса отключён');
-            }
-        });
-        const cancelBtn = document.getElementById('cancelBusinessSelect');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                document.getElementById('businessSelectModal').style.display = 'none';
-                pendingCoords = null;
-            });
-        }
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('businessSelectModal');
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                pendingCoords = null;
-            }
-        });
-    }
-    
-    function setupMapWheelZoom() {
-        if (!mapWrapper) return;
-        mapWrapper.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            if (e.deltaY < 0) {
-                zoomIn();
-            } else {
-                zoomOut();
-            }
-        }, { passive: false });
-    }
-    
-    function setupMapDrag() {
-        if (!mapWrapper) return;
-        mapWrapper.addEventListener('mousedown', startDragMap);
-        window.addEventListener('mousemove', onDragMap);
-        window.addEventListener('mouseup', stopDragMap);
-    }
-    
-    function refreshMap() {
-        setTimeout(() => updateMapMarkers(), 100);
-    }
-
     function setupRealtimeListeners() {
         if (unsubscribeFunctions.length) {
             unsubscribeFunctions.forEach(unsub => unsub());
             unsubscribeFunctions = [];
         }
-        unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => { loadAllData(); refreshMap(); }));
+        unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('news').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('documents').onSnapshot(() => loadAllData()));
     }
-
+    
     async function loadAllData() {
         const businessesSnapshot = await db.collection('businesses').get();
         businessesData = [];
@@ -2074,9 +1586,8 @@
             });
         });
         renderAll();
-        refreshMap();
     }
-
+    
     function renderAll() {
         renderBusiness();
         renderReviews();
@@ -2086,30 +1597,7 @@
         renderEmployees();
         updateStats();
     }
-
-    function getStatusUI(status) {
-        if(status === "free") return { class: "status-free", text: "🟢 СВОБОДЕН" };
-        if(status === "occupied") return { class: "status-occupied", text: "🔴 ЗАНЯТ" };
-        return { class: "status-pending", text: "🟡 В ОБРАБОТКЕ" };
-    }
-
-    function getTypeDisplay(type) {
-        if(type === "СТО") return "🔧 СТО";
-        if(type === "Клуб") return "🎧 Клуб";
-        if(type === "Ресторан/Кафе") return "🍽️ Ресторан/Кафе";
-        return "🏪 Остальное";
-    }
-
-    function getMeetingStatusUI(status) {
-        if(status === "inwork") return { class: "status-inwork", text: "🟢 В работе" };
-        if(status === "accepted") return { class: "status-accepted", text: "🟡 Принято" };
-        if(status === "finished") return { class: "status-finished", text: "🔵 Закончена" };
-        return { class: "status-inwork", text: "🟢 В работе" };
-    }
-
-    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-    function extractYouTubeId(url) { if(!url) return null; const regExp = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/; const match = url.match(regExp); return match ? match[1] : null; }
-
+    
     function renderBusiness() {
         const grid = document.getElementById("businessGrid");
         if(!grid) return;
@@ -2136,7 +1624,7 @@
             document.querySelectorAll('.delete-business-btn').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); const bizId = btn.dataset.id; if(confirm("Удалить этот бизнес?")) { await db.collection('businesses').doc(bizId).delete(); loadAllData(); } }));
         }
     }
-
+    
     function initFilters() {
         document.querySelectorAll('.status-filter').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -2155,7 +1643,7 @@
             });
         });
     }
-
+    
     function renderReviews() {
         const container = document.getElementById("reviewsContainer");
         if(!container) return;
@@ -2163,26 +1651,26 @@
         container.innerHTML = reviews.map(r => `<div class="review-item"><div class="review-content"><div class="review-name">${escapeHtml(r.name)}</div><div class="review-date">${r.date}</div><p>${escapeHtml(r.text)}</p></div>${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️ Удалить</button>` : ''}</div>`).join('');
         if(isAdmin) document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('reviews').doc(id).delete(); loadAllData(); }));
     }
-
+    
     function renderNews() {
         const container = document.getElementById("newsContainer");
         if(!container) return;
         if(news.length === 0) { container.innerHTML = "<div class='news-item'>Пока нет новостей. Следите за обновлениями!</div>"; return; }
-        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = extractYouTubeId(n.videoUrl); if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news image" loading="lazy">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️ Удалить новость</button>` : ''}</div>`; }).join('');
+        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = n.videoUrl.split('v=')[1]?.split('&')[0]; if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news image" loading="lazy">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️ Удалить новость</button>` : ''}</div>`; }).join('');
         if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('news').doc(id).delete(); loadAllData(); }));
     }
-
+    
     function renderMeetings() {
         const container = document.getElementById("meetingsList");
         if(!container) return;
         if(meetings.length === 0) { container.innerHTML = "<div class='meeting-item'>Нет запланированных встреч.</div>"; return; }
-        container.innerHTML = meetings.map(m => { const statusUI = getMeetingStatusUI(m.status); return `<div class="meeting-item"><div class="meeting-header"><div class="review-name">${escapeHtml(m.name)}</div><div class="meeting-status ${statusUI.class}">${statusUI.text}</div></div><div>📞 ${m.phone || '—'}</div><div>🪪 ID карта: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">📅 ${m.date}</div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">🟢 В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">🟡 Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">🔵 Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️ Удалить</button>` : ''}</div>` : ''}</div>`; }).join('');
+        container.innerHTML = meetings.map(m => { let statusText = "", statusClass = ""; if(m.status === "inwork") { statusText = "🟢 В работе"; statusClass = "status-inwork"; } else if(m.status === "accepted") { statusText = "🟡 Принято"; statusClass = "status-accepted"; } else { statusText = "🔵 Закончена"; statusClass = "status-finished"; } return `<div class="meeting-item"><div class="meeting-header"><div class="review-name">${escapeHtml(m.name)}</div><div class="meeting-status ${statusClass}">${statusText}</div></div><div>📞 ${m.phone || '—'}</div><div>🪪 ID карта: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">📅 ${m.date}</div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">🟢 В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">🟡 Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">🔵 Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️ Удалить</button>` : ''}</div>` : ''}</div>`; }).join('');
         if(isAdmin) {
             document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; const newStatus = btn.dataset.status; await db.collection('meetings').doc(id).update({ status: newStatus }); loadAllData(); }));
             document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('meetings').doc(id).delete(); loadAllData(); }));
         }
     }
-
+    
     function renderDocuments() {
         const container = document.getElementById("documentsContainer");
         if(!container) return;
@@ -2190,7 +1678,7 @@
         container.innerHTML = [...documents].reverse().map(d => `<div class="doc-item"><div class="doc-date">📅 ${d.date}</div><div class="doc-title">${escapeHtml(d.title)}</div>${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc image" loading="lazy">` : ''}<div class="doc-text">${escapeHtml(d.text)}</div>${isAdmin ? `<button class="delete-doc" data-id="${d.id}">🗑️ Удалить документ</button>` : ''}</div>`).join('');
         if(isAdmin) document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('documents').doc(id).delete(); loadAllData(); }));
     }
-
+    
     function renderEmployees() {
         const container = document.getElementById("employeesContainer");
         if(!container) return;
@@ -2205,10 +1693,10 @@
             }));
         }
     }
-
+    
     function updateBusinessStats() { const total = businessesData.length; const freeCount = businessesData.filter(b => b.status === "free").length; document.getElementById("totalBusiness").innerText = total; document.getElementById("freeBusinessCount").innerText = freeCount; }
     function updateStats() { document.getElementById("reviewCount").innerText = reviews.length; updateBusinessStats(); }
-
+    
     function initInfoModal() {
         const modal = document.getElementById("infoModal"), modalBody = document.getElementById("infoModalBody"), closeBtn = modal.querySelector(".close-info-modal");
         document.querySelectorAll('.info-link').forEach(link => link.addEventListener("click", () => { const infoKey = link.dataset.info; if(infoKey && infoTexts[infoKey]) { modalBody.innerHTML = infoTexts[infoKey]; modal.style.display = "flex"; } }));
@@ -2216,14 +1704,14 @@
         modal.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
         document.addEventListener("keydown", (e) => { if(e.key === "Escape" && modal.style.display === "flex") modal.style.display = "none"; });
     }
-
+    
     function initPriceModal() {
         const modal = document.getElementById("priceModal"), saveBtn = document.getElementById("priceModalSave"), cancelBtn = document.getElementById("priceModalCancel");
         saveBtn.addEventListener("click", async () => { const newPrice = document.getElementById("priceInput").value.trim(); if(newPrice) { await db.collection('businesses').doc(currentBizId).update({ price: newPrice }); loadAllData(); } modal.style.display = "none"; });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
-
+    
     function initChangeImageModal() {
         const modal = document.getElementById("changeImageModal"), saveBtn = document.getElementById("changeImageSave"), cancelBtn = document.getElementById("changeImageCancel");
         saveBtn.addEventListener("click", async () => {
@@ -2237,7 +1725,7 @@
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
-
+    
     function initChangeEmployeePhotoModal() {
         const modal = document.getElementById("changeEmployeePhotoModal"), saveBtn = document.getElementById("employeePhotoSave"), cancelBtn = document.getElementById("employeePhotoCancel");
         saveBtn.addEventListener("click", async () => {
@@ -2251,7 +1739,7 @@
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
-
+    
     function initAddBusinessModal() {
         const modal = document.getElementById("addBusinessModal"), saveBtn = document.getElementById("addBizSave"), cancelBtn = document.getElementById("addBizCancel");
         saveBtn.addEventListener("click", async () => { 
@@ -2269,15 +1757,15 @@
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
         document.getElementById("addBusinessBtn")?.addEventListener("click", () => modal.style.display = "flex");
     }
-
+    
     function initMeetingForm() {
         const topicSelect = document.getElementById("meetTopic"), customField = document.getElementById("customTopicField");
         if(topicSelect) topicSelect.addEventListener("change", () => { if(topicSelect.value === "Другое") customField.classList.add("visible"); else customField.classList.remove("visible"); });
     }
-
+    
     function saveAdminStatus(admin) { sessionStorage.setItem("adminMode", admin ? "true" : "false"); }
     function loadAdminStatus() { const saved = sessionStorage.getItem("adminMode"); if (saved === "true") { setAdminMode(true); } }
-
+    
     function setAdminMode(admin) {
         isAdmin = admin;
         saveAdminStatus(admin);
@@ -2291,8 +1779,6 @@
             renderAll();
             if(adminBlock) adminBlock.style.display = "block"; if(adminNewsBlock) adminNewsBlock.style.display = "block"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "block"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "block";
             setActiveSection("meeting");
-            setupMapClicks();
-            refreshMap();
         } else {
             body.classList.remove('admin-mode');
             const authArea = document.getElementById("authArea");
@@ -2301,9 +1787,8 @@
             if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
             renderAll();
         }
-        updateMapMarkers();
     }
-
+    
     function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
     function hideLoginModal() { document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; }
     
@@ -2317,7 +1802,7 @@
             alert("Неверный пароль!"); 
         } 
     }
-
+    
     function setupForms() {
         document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim(), text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст отзыва"); return; } if(!name) name = "Гражданин"; const newId = Date.now().toString(); await db.collection('reviews').doc(newId).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; alert("✅ Отзыв опубликован!"); loadAllData(); });
         
@@ -2333,7 +1818,7 @@
         document.getElementById("docImageUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("docImagePreviewContainer"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
         document.getElementById("empPhotoUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("empPhotoPreview"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
     }
-
+    
     function setActiveSection(sectionId) {
         document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active-section"));
         document.getElementById(sectionId)?.classList.add("active-section");
@@ -2341,49 +1826,31 @@
         const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
         if(activeBtn) activeBtn.classList.add("active");
         localStorage.setItem("activeSection", sectionId);
+        
+        // При переключении на вкладку карты — обновляем позицию
         if (sectionId === "map") {
             setTimeout(() => {
-                updateMapMarkers();
-                if (isAdmin) setupMapClicks();
-            }, 200);
+                if (!isMapInitialized) {
+                    initMap();
+                } else {
+                    refreshMap();
+                }
+            }, 100);
         }
     }
-
+    
     function initNavigation() {
         document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => { const sectionId = btn.getAttribute("data-section"); if(sectionId) { setActiveSection(sectionId); window.scrollTo({ top: 0, behavior: "smooth" }); } }));
         const savedSection = localStorage.getItem("activeSection");
         if(savedSection && document.getElementById(savedSection)) setActiveSection(savedSection);
         else setActiveSection("home");
     }
-
+    
     function initEnterLogin() {
         const passwordInput = document.getElementById("adminPassword");
         if(passwordInput) { passwordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkAdminLogin(); }); }
     }
-
-    function initMap() {
-        markersLayer = document.getElementById('markersLayer');
-        mapImage = document.getElementById('gtaMapImage');
-        mapImageWrapper = document.getElementById('mapImageWrapper');
-        mapWrapper = document.getElementById('mapWrapper');
-        mapContainer = document.getElementById('mapContainer');
-        
-        if (!markersLayer || !mapImage || !mapImageWrapper || !mapWrapper) return;
-        
-        mapImage.addEventListener('load', () => {
-            updateMapScale();
-            updateMapMarkers();
-        });
-        
-        document.getElementById('zoomInBtn')?.addEventListener('click', zoomIn);
-        document.getElementById('zoomOutBtn')?.addEventListener('click', zoomOut);
-        setupMapWheelZoom();
-        setupMapDrag();
-        setupPickLocationButton();
-        updateMapScale();
-        updateMapMarkers();
-    }
-
+    
     setupRealtimeListeners();
     loadAllData();
     setupForms();
@@ -2398,7 +1865,9 @@
     initFilters();
     initTheme();
     loadAdminStatus();
-    initMap();
+    
+    // Не инициализируем карту сразу, дождёмся перехода на вкладку
+    // initMap() будет вызван при первом переключении на вкладку "map"
     
     document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
     document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
