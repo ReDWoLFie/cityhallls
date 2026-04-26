@@ -232,13 +232,15 @@
         
         body.theme-gta .delete-business-btn, body.theme-gta .delete-review,
         body.theme-gta .delete-news, body.theme-gta .delete-doc,
-        body.theme-gta .delete-employee, body.theme-gta .delete-finished-btn {
+        body.theme-gta .delete-employee, body.theme-gta .delete-finished-btn,
+        body.theme-gta .delete-org-btn {
             background: #dc2626;
         }
         
         body.theme-gta .delete-business-btn:hover, body.theme-gta .delete-review:hover,
         body.theme-gta .delete-news:hover, body.theme-gta .delete-doc:hover,
-        body.theme-gta .delete-employee:hover, body.theme-gta .delete-finished-btn:hover {
+        body.theme-gta .delete-employee:hover, body.theme-gta .delete-finished-btn:hover,
+        body.theme-gta .delete-org-btn:hover {
             background: #b91c1c;
         }
         
@@ -412,7 +414,6 @@
         h2 { font-size: 1.8rem; margin-bottom: 1.5rem; border-left: 4px solid #c9a87b; padding-left: 1.2rem; color: #1a1f2e; }
         h3 { font-size: 1.4rem; margin: 1rem 0 0.75rem; color: #a8845a; }
         
-        /* Стили для карты */
         .map-wrapper {
             position: relative;
             width: 100%;
@@ -422,9 +423,7 @@
             overflow: hidden;
             cursor: grab;
         }
-        .map-wrapper.dragging {
-            cursor: grabbing;
-        }
+        .map-wrapper.dragging { cursor: grabbing; }
         .map-container {
             position: relative;
             width: 100%;
@@ -436,9 +435,7 @@
             cursor: grab;
             transform-origin: 0 0;
         }
-        .map-image-wrapper.dragging {
-            cursor: grabbing;
-        }
+        .map-image-wrapper.dragging { cursor: grabbing; }
         #gtaMapImage {
             display: block;
             width: 8192px;
@@ -478,9 +475,7 @@
             color: #1a1f2e;
             transform: scale(1.05);
         }
-        .zoom-btn {
-            font-size: 24px;
-        }
+        .zoom-btn { font-size: 24px; }
         body.theme-gta .map-btn {
             background: rgba(15, 23, 36, 0.9);
             border-color: #f59e0b;
@@ -504,7 +499,6 @@
             color: #94a3b8;
         }
         
-        /* Уведомление */
         .toast-notification {
             position: fixed;
             bottom: 30px;
@@ -923,6 +917,53 @@
             .map-wrapper { height: 400px; }
             #gtaMapImage { width: 4096px; height: 4096px; }
         }
+        
+        .delete-org-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #9b2c2c;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .delete-org-btn:hover {
+            background: #7a1f1f;
+            transform: scale(1.05);
+        }
+        #privateOrgToggle {
+            transition: all 0.2s;
+        }
+        #privateOrgToggle:hover {
+            background: #c9a87b20;
+            border-radius: 16px;
+        }
+        
+        .manual-refresh-btn {
+            background: #4a6a8a;
+            color: white;
+            margin-left: 10px;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .manual-refresh-btn:hover {
+            background: #5a7a9a;
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body>
@@ -1015,6 +1056,20 @@
             <div class="info-item"><div class="info-link" data-info="businessOwner"><span>🏪 Информация для владельцев бизнесов</span><span class="external-icon">📖 Читать →</span></div></div>
             <div class="info-item"><div class="info-link" data-info="smallBusiness"><span>🏢 Информация для малых частных предприятий</span><span class="external-icon">📖 Читать →</span></div></div>
         </div>
+        
+        <div class="card">
+            <div class="info-link" id="privateOrgToggle" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <span>🏛️ Реестр частных организаций</span>
+                <span class="external-icon" id="toggleIcon">▼ Развернуть</span>
+            </div>
+            <div id="privateOrgList" style="display: none; margin-top: 1rem;">
+                <div id="orgsContainer" class="business-grid" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));"></div>
+                <div id="adminOrgBlock" class="admin-only" style="margin-top: 1rem; text-align: center;">
+                    <button id="addOrgBtn" style="background: #2f6b2f; color: white;">➕ Добавить организацию</button>
+                </div>
+            </div>
+        </div>
+        
         <div class="card">
             <div class="admin-only" style="margin-bottom: 1rem;"><button id="addBusinessBtn" style="background: #2f6b2f; color: white;">➕ Добавить бизнес</button></div>
             <h2>🏢 Бизнесы и предприятия для аренды</h2>
@@ -1041,7 +1096,6 @@
         </div>
     </div>
 
-    <!-- Вкладка с картой -->
     <div id="map" class="section">
         <div class="card">
             <h2>🗺️ Карта штата Сан-Андреас</h2>
@@ -1080,7 +1134,7 @@
             <h2>📝 Запись на личный приём</h2>
             <div class="meeting-form">
                 <input type="text" id="meetName" placeholder="Ваше имя / позывной">
-                <input type="tel" id="meetPhone" placeholder="Номер телефона (10 цифр)" maxlength="10" pattern="\\d{10}">
+                <input type="tel" id="meetPhone" placeholder="Номер телефона (10 цифр)" maxlength="10">
                 <input type="text" id="meetCardId" placeholder="ID карта">
                 <select id="meetTopic">
                     <option value="Бизнес-вопрос">Бизнес-вопрос</option>
@@ -1125,7 +1179,6 @@
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
 </div>
 
-<!-- Модальные окна -->
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -1183,6 +1236,19 @@
     </div>
 </div>
 
+<div id="addOrgModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>🏛️ Добавить частную организацию</h3>
+        <input type="text" id="orgName" placeholder="Название организации">
+        <input type="text" id="orgFounder" placeholder="Имя учредителя">
+        <input type="tel" id="orgPhone" placeholder="Номер телефона (10 цифр)" maxlength="10">
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="addOrgSave">Добавить</button>
+            <button id="addOrgCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
 <div id="infoModal" class="info-modal">
     <div class="info-modal-content">
         <button class="close-info-modal">&times;</button>
@@ -1222,7 +1288,7 @@
         });
     }
     
-    // ========== 🔥 ВАШИ ДАННЫЕ ИЗ FIREBASE ==========
+    // ========== FIREBASE ==========
     const firebaseConfig = {
         apiKey: "AIzaSyDOYM0-HXLGoOX_hO07iEkXzyy03PTUF44",
         authDomain: "cityhall-20302.firebaseapp.com",
@@ -1231,8 +1297,6 @@
         messagingSenderId: "264481024371",
         appId: "1:264481024371:web:6346ea9f9c5101f009bd06"
     };
-    // ================================================
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -1262,95 +1326,268 @@
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
     let unsubscribeFunctions = [];
+    let privateOrgs = [];
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
     
-    // ========== КАРТА С СОХРАНЕНИЕМ СОСТОЯНИЯ ==========
+    // ========== АВТООБНОВЛЕНИЕ ССЫЛОК КАЖДЫЙ ДЕНЬ В 15:00 ==========
+    async function refreshAllImageLinks() {
+        console.log('🔄 Начинаю перезапись ссылок на картинки...');
+        let updatedCount = 0;
+        
+        // Бизнесы
+        const businessesSnapshot = await db.collection('businesses').get();
+        for (const doc of businessesSnapshot.docs) {
+            const data = doc.data();
+            if (data.imgUrl) {
+                await doc.ref.update({ imgUrl: data.imgUrl });
+                updatedCount++;
+            }
+        }
+        
+        // Сотрудники
+        const employeesSnapshot = await db.collection('employees').get();
+        for (const doc of employeesSnapshot.docs) {
+            const data = doc.data();
+            if (data.photoUrl) {
+                await doc.ref.update({ photoUrl: data.photoUrl });
+                updatedCount++;
+            }
+        }
+        
+        // Новости
+        const newsSnapshot = await db.collection('news').get();
+        for (const doc of newsSnapshot.docs) {
+            const data = doc.data();
+            if (data.imageUrl) {
+                await doc.ref.update({ imageUrl: data.imageUrl });
+                updatedCount++;
+            }
+        }
+        
+        // Документы
+        const docsSnapshot = await db.collection('documents').get();
+        for (const doc of docsSnapshot.docs) {
+            const data = doc.data();
+            if (data.imageUrl) {
+                await doc.ref.update({ imageUrl: data.imageUrl });
+                updatedCount++;
+            }
+        }
+        
+        console.log(`✅ Перезапись завершена! Обновлено ${updatedCount} ссылок.`);
+        showToast(`🖼️ Обновлено ${updatedCount} ссылок на картинки`);
+        
+        loadAllData();
+        if (document.getElementById('privateOrgList')?.style.display === 'block') {
+            loadPrivateOrgs();
+        }
+    }
+    
+    // Функция для проверки и запуска автообновления в 15:00
+    function scheduleDailyRefresh() {
+        const now = new Date();
+        const targetHour = 15; // 15:00
+        const targetMinute = 0;
+        
+        let nextRefresh = new Date(now);
+        nextRefresh.setHours(targetHour, targetMinute, 0, 0);
+        
+        if (now >= nextRefresh) {
+            nextRefresh.setDate(nextRefresh.getDate() + 1);
+        }
+        
+        const msUntilRefresh = nextRefresh - now;
+        console.log(`⏰ Следующее обновление ссылок: ${nextRefresh.toLocaleString()}`);
+        
+        setTimeout(() => {
+            refreshAllImageLinks();
+            scheduleDailyRefresh(); // Запускаем следующий цикл
+        }, msUntilRefresh);
+    }
+    
+    // Ручная кнопка обновления для админа
+    function addManualRefreshButton() {
+        const adminPanel = document.querySelector('.admin-panel');
+        if (adminPanel && !document.getElementById('manualRefreshBtn')) {
+            const refreshBtn = document.createElement('button');
+            refreshBtn.id = 'manualRefreshBtn';
+            refreshBtn.textContent = '🖼️ Обновить ссылки';
+            refreshBtn.className = 'manual-refresh-btn';
+            refreshBtn.onclick = () => {
+                refreshAllImageLinks();
+                showToast('🔄 Начинаю перезапись ссылок...');
+            };
+            adminPanel.appendChild(refreshBtn);
+        }
+    }
+    
+    // ========== РЕЕСТР ЧАСТНЫХ ОРГАНИЗАЦИЙ ==========
+    async function loadPrivateOrgs() {
+        const snapshot = await db.collection('privateOrgs').get();
+        privateOrgs = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            privateOrgs.push({
+                id: doc.id,
+                name: data.name,
+                founder: data.founder,
+                phone: data.phone
+            });
+        });
+        renderPrivateOrgs();
+    }
+    
+    function renderPrivateOrgs() {
+        const container = document.getElementById('orgsContainer');
+        if (!container) return;
+        
+        if (privateOrgs.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #718096;">📋 Нет зарегистрированных организаций</div>';
+            return;
+        }
+        
+        container.innerHTML = privateOrgs.map(org => `
+            <div class="business-card" style="position: relative;">
+                ${isAdmin ? `<button class="delete-org-btn" data-id="${org.id}">✕</button>` : ''}
+                <div class="business-info">
+                    <h3 style="color: #a8845a;">🏛️ ${escapeHtml(org.name)}</h3>
+                    <div class="business-address">👤 Учредитель: ${escapeHtml(org.founder)}</div>
+                    <div class="business-type">📞 Телефон: ${escapeHtml(org.phone)}</div>
+                </div>
+            </div>
+        `).join('');
+        
+        if (isAdmin) {
+            document.querySelectorAll('.delete-org-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if (confirm('Удалить эту организацию из реестра?')) {
+                        await db.collection('privateOrgs').doc(id).delete();
+                        loadPrivateOrgs();
+                        showToast('✅ Организация удалена из реестра');
+                    }
+                });
+            });
+        }
+    }
+    
+    function initPrivateOrgToggle() {
+        const toggleBtn = document.getElementById('privateOrgToggle');
+        const orgList = document.getElementById('privateOrgList');
+        const toggleIcon = document.getElementById('toggleIcon');
+        if (!toggleBtn || !orgList) return;
+        
+        const isOpen = localStorage.getItem('privateOrgOpen') === 'true';
+        if (isOpen) {
+            orgList.style.display = 'block';
+            toggleIcon.textContent = '▲ Свернуть';
+            loadPrivateOrgs();
+        }
+        
+        toggleBtn.addEventListener('click', () => {
+            const isVisible = orgList.style.display !== 'none';
+            if (isVisible) {
+                orgList.style.display = 'none';
+                toggleIcon.textContent = '▼ Развернуть';
+                localStorage.setItem('privateOrgOpen', 'false');
+            } else {
+                orgList.style.display = 'block';
+                toggleIcon.textContent = '▲ Свернуть';
+                localStorage.setItem('privateOrgOpen', 'true');
+                loadPrivateOrgs();
+            }
+        });
+    }
+    
+    function initAddOrgModal() {
+        const modal = document.getElementById('addOrgModal');
+        const saveBtn = document.getElementById('addOrgSave');
+        const cancelBtn = document.getElementById('addOrgCancel');
+        const addBtn = document.getElementById('addOrgBtn');
+        if (!modal || !saveBtn || !cancelBtn || !addBtn) return;
+        
+        addBtn.addEventListener('click', () => {
+            document.getElementById('orgName').value = '';
+            document.getElementById('orgFounder').value = '';
+            document.getElementById('orgPhone').value = '';
+            modal.style.display = 'flex';
+        });
+        
+        saveBtn.addEventListener('click', async () => {
+            const name = document.getElementById('orgName').value.trim();
+            const founder = document.getElementById('orgFounder').value.trim();
+            const phone = document.getElementById('orgPhone').value.trim();
+            
+            if (!name || !founder || !phone) {
+                alert('Заполните все поля');
+                return;
+            }
+            if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+                alert('Телефон должен содержать 10 цифр');
+                return;
+            }
+            
+            await db.collection('privateOrgs').doc(Date.now().toString()).set({
+                name: name,
+                founder: founder,
+                phone: phone
+            });
+            modal.style.display = 'none';
+            showToast('✅ Организация добавлена в реестр');
+            loadPrivateOrgs();
+        });
+        
+        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    
+    // ========== КАРТА ==========
     const MAP_WIDTH = 8192;
     const MAP_HEIGHT = 8192;
-    
     const STORAGE_KEY = 'cityhall_map_state';
     
-    // Загрузка сохранённого состояния карты
     function loadMapState() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             try {
                 const state = JSON.parse(saved);
-                return {
-                    scale: state.scale !== undefined ? state.scale : 0.15,
-                    translateX: state.translateX !== undefined ? state.translateX : 0,
-                    translateY: state.translateY !== undefined ? state.translateY : 0
-                };
-            } catch(e) {
-                console.warn('Ошибка загрузки состояния карты', e);
-            }
+                return { scale: state.scale !== undefined ? state.scale : 0.15, translateX: state.translateX !== undefined ? state.translateX : 0, translateY: state.translateY !== undefined ? state.translateY : 0 };
+            } catch(e) {}
         }
-        // Значения по умолчанию: отдалено (0.15) и прокручено вниз
-        return {
-            scale: 0.15,
-            translateX: 0,
-            translateY: -8192 * 0.15 / 2  // Сдвиг вниз на половину высоты при масштабе 0.15
-        };
+        return { scale: 0.15, translateX: 0, translateY: -8192 * 0.15 / 2 };
     }
     
-    // Сохранение состояния карты
     function saveMapState() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            scale: currentScale,
-            translateX: translateX,
-            translateY: translateY
-        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ scale: currentScale, translateX: translateX, translateY: translateY }));
     }
     
     let currentScale = 1;
     const scaleStep = 0.1;
     let minScale = 0.15;
     let maxScale = 5.0;
-    
-    let translateX = 0;
-    let translateY = 0;
-    
+    let translateX = 0, translateY = 0;
     let isDraggingMap = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let dragStartTranslateX = 0;
-    let dragStartTranslateY = 0;
-    
-    let mapImage = null;
-    let mapImageWrapper = null;
-    let mapWrapper = null;
+    let dragStartX = 0, dragStartY = 0;
+    let dragStartTranslateX = 0, dragStartTranslateY = 0;
+    let mapImage = null, mapImageWrapper = null, mapWrapper = null;
     let isMapInitialized = false;
     
     function updateMapTransform() {
         if (!mapImageWrapper) return;
-        
         const wrapperWidth = mapWrapper.clientWidth;
         const wrapperHeight = mapWrapper.clientHeight;
         const scaledWidth = MAP_WIDTH * currentScale;
         const scaledHeight = MAP_HEIGHT * currentScale;
-        
         let minX = wrapperWidth - scaledWidth;
         let minY = wrapperHeight - scaledHeight;
-        let maxX = 0;
-        let maxY = 0;
-        
-        if (scaledWidth > wrapperWidth) {
-            translateX = Math.min(maxX, Math.max(minX, translateX));
-        } else {
-            translateX = (wrapperWidth - scaledWidth) / 2;
-        }
-        
-        if (scaledHeight > wrapperHeight) {
-            translateY = Math.min(maxY, Math.max(minY, translateY));
-        } else {
-            translateY = (wrapperHeight - scaledHeight) / 2;
-        }
-        
+        if (scaledWidth > wrapperWidth) translateX = Math.min(0, Math.max(minX, translateX));
+        else translateX = (wrapperWidth - scaledWidth) / 2;
+        if (scaledHeight > wrapperHeight) translateY = Math.min(0, Math.max(minY, translateY));
+        else translateY = (wrapperHeight - scaledHeight) / 2;
         mapImageWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
-        
-        // Сохраняем состояние при каждом обновлении
         saveMapState();
     }
     
@@ -1358,109 +1595,54 @@
         const rect = mapWrapper.getBoundingClientRect();
         const mouseX = clientX - rect.left;
         const mouseY = clientY - rect.top;
-        
         const oldScale = currentScale;
         let newScale = currentScale + delta;
         if (newScale < minScale) newScale = minScale;
         if (newScale > maxScale) newScale = maxScale;
         if (newScale === oldScale) return;
-        
         const worldX = (mouseX - translateX) / oldScale;
         const worldY = (mouseY - translateY) / oldScale;
-        
         currentScale = newScale;
         translateX = mouseX - worldX * currentScale;
         translateY = mouseY - worldY * currentScale;
-        
         updateMapTransform();
     }
     
-    function zoomIn() {
-        const rect = mapWrapper.getBoundingClientRect();
-        zoomAtPoint(rect.left + rect.width / 2, rect.top + rect.height / 2, scaleStep);
-    }
-    
-    function zoomOut() {
-        const rect = mapWrapper.getBoundingClientRect();
-        zoomAtPoint(rect.left + rect.width / 2, rect.top + rect.height / 2, -scaleStep);
-    }
-    
-    function startDragMap(e) {
-        if (e.button !== 0) return;
-        isDraggingMap = true;
-        mapImageWrapper.classList.add('dragging');
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
-        dragStartTranslateX = translateX;
-        dragStartTranslateY = translateY;
-        e.preventDefault();
-    }
-    
-    function onDragMap(e) {
-        if (!isDraggingMap) return;
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
-        translateX = dragStartTranslateX + dx;
-        translateY = dragStartTranslateY + dy;
-        updateMapTransform();
-    }
-    
-    function stopDragMap() {
-        if (!isDraggingMap) return;
-        isDraggingMap = false;
-        mapImageWrapper.classList.remove('dragging');
-    }
+    function zoomIn() { const rect = mapWrapper.getBoundingClientRect(); zoomAtPoint(rect.left + rect.width/2, rect.top + rect.height/2, scaleStep); }
+    function zoomOut() { const rect = mapWrapper.getBoundingClientRect(); zoomAtPoint(rect.left + rect.width/2, rect.top + rect.height/2, -scaleStep); }
+    function startDragMap(e) { if (e.button !== 0) return; isDraggingMap = true; mapImageWrapper.classList.add('dragging'); dragStartX = e.clientX; dragStartY = e.clientY; dragStartTranslateX = translateX; dragStartTranslateY = translateY; e.preventDefault(); }
+    function onDragMap(e) { if (!isDraggingMap) return; translateX = dragStartTranslateX + (e.clientX - dragStartX); translateY = dragStartTranslateY + (e.clientY - dragStartY); updateMapTransform(); }
+    function stopDragMap() { if (!isDraggingMap) return; isDraggingMap = false; mapImageWrapper.classList.remove('dragging'); }
     
     function setupMapEvents() {
         if (!mapWrapper) return;
-        
         document.getElementById('zoomInBtn')?.addEventListener('click', zoomIn);
         document.getElementById('zoomOutBtn')?.addEventListener('click', zoomOut);
-        
-        mapWrapper.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? -scaleStep : scaleStep;
-            zoomAtPoint(e.clientX, e.clientY, delta);
-        }, { passive: false });
-        
+        mapWrapper.addEventListener('wheel', (e) => { e.preventDefault(); zoomAtPoint(e.clientX, e.clientY, e.deltaY > 0 ? -scaleStep : scaleStep); }, { passive: false });
         mapWrapper.addEventListener('mousedown', startDragMap);
         window.addEventListener('mousemove', onDragMap);
         window.addEventListener('mouseup', stopDragMap);
     }
     
-    // Инициализация карты с загрузкой сохранённого состояния
     function initMap() {
         if (isMapInitialized) return;
-        
         mapImage = document.getElementById('gtaMapImage');
         mapImageWrapper = document.getElementById('mapImageWrapper');
         mapWrapper = document.getElementById('mapWrapper');
-        
         if (!mapImage || !mapImageWrapper || !mapWrapper) return;
-        
-        // Загружаем сохранённое состояние
         const savedState = loadMapState();
         currentScale = savedState.scale;
         translateX = savedState.translateX;
         translateY = savedState.translateY;
-        
-        mapImage.addEventListener('load', () => {
-            updateMapTransform();
-        });
-        
+        mapImage.addEventListener('load', () => updateMapTransform());
         setupMapEvents();
         updateMapTransform();
         isMapInitialized = true;
     }
     
-    // При переключении на вкладку карты — обновляем позицию (на случай, если размер контейнера изменился)
-    function refreshMap() {
-        if (mapImageWrapper && mapWrapper) {
-            updateMapTransform();
-        }
-    }
+    function refreshMap() { if (mapImageWrapper && mapWrapper) updateMapTransform(); }
     
-    // ========== ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений) ==========
+    // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
     function getStatusUI(status) {
         if(status === "free") return { class: "status-free", text: "🟢 СВОБОДЕН" };
         if(status === "occupied") return { class: "status-occupied", text: "🔴 ЗАНЯТ" };
@@ -1481,22 +1663,18 @@
         toast.className = 'toast-notification';
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 2000);
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 2000);
     }
     
     function setupRealtimeListeners() {
-        if (unsubscribeFunctions.length) {
-            unsubscribeFunctions.forEach(unsub => unsub());
-            unsubscribeFunctions = [];
-        }
+        if (unsubscribeFunctions.length) { unsubscribeFunctions.forEach(unsub => unsub()); unsubscribeFunctions = []; }
         unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('news').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('documents').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('privateOrgs').onSnapshot(() => { if (document.getElementById('privateOrgList')?.style.display === 'block') loadPrivateOrgs(); }));
     }
     
     async function loadAllData() {
@@ -1504,104 +1682,37 @@
         businessesData = [];
         businessesSnapshot.forEach(doc => {
             const data = doc.data();
-            businessesData.push({
-                id: doc.id,
-                name: data.name,
-                address: data.address,
-                type: data.type || "Остальное",
-                imgIcon: data.imgIcon,
-                imgUrl: data.imgUrl,
-                price: data.price,
-                status: data.status,
-                mapX: data.mapX,
-                mapY: data.mapY
-            });
+            businessesData.push({ id: doc.id, name: data.name, address: data.address, type: data.type || "Остальное", imgIcon: data.imgIcon, imgUrl: data.imgUrl, price: data.price, status: data.status, mapX: data.mapX, mapY: data.mapY });
         });
         
         const employeesSnapshot = await db.collection('employees').get();
         employees = [];
-        employeesSnapshot.forEach(doc => {
-            const data = doc.data();
-            employees.push({
-                id: doc.id,
-                name: data.name,
-                position: data.position,
-                photoUrl: data.photoUrl,
-                icon: data.icon
-            });
-        });
+        employeesSnapshot.forEach(doc => { const data = doc.data(); employees.push({ id: doc.id, name: data.name, position: data.position, photoUrl: data.photoUrl, icon: data.icon }); });
         
         const reviewsSnapshot = await db.collection('reviews').get();
         reviews = [];
-        reviewsSnapshot.forEach(doc => {
-            const data = doc.data();
-            reviews.push({
-                id: doc.id,
-                name: data.name,
-                text: data.text,
-                date: data.date
-            });
-        });
+        reviewsSnapshot.forEach(doc => { const data = doc.data(); reviews.push({ id: doc.id, name: data.name, text: data.text, date: data.date }); });
         
         const meetingsSnapshot = await db.collection('meetings').get();
         meetings = [];
-        meetingsSnapshot.forEach(doc => {
-            const data = doc.data();
-            meetings.push({
-                id: doc.id,
-                name: data.name,
-                phone: data.phone,
-                cardId: data.cardId,
-                topic: data.topic,
-                customTopic: data.customTopic,
-                status: data.status,
-                date: data.date
-            });
-        });
+        meetingsSnapshot.forEach(doc => { const data = doc.data(); meetings.push({ id: doc.id, name: data.name, phone: data.phone, cardId: data.cardId, topic: data.topic, customTopic: data.customTopic, status: data.status, date: data.date }); });
         
         const newsSnapshot = await db.collection('news').get();
         news = [];
-        newsSnapshot.forEach(doc => {
-            const data = doc.data();
-            news.push({
-                id: doc.id,
-                title: data.title,
-                text: data.text,
-                imageUrl: data.imageUrl,
-                videoUrl: data.videoUrl,
-                date: data.date
-            });
-        });
+        newsSnapshot.forEach(doc => { const data = doc.data(); news.push({ id: doc.id, title: data.title, text: data.text, imageUrl: data.imageUrl, videoUrl: data.videoUrl, date: data.date }); });
         
         const docsSnapshot = await db.collection('documents').get();
         documents = [];
-        docsSnapshot.forEach(doc => {
-            const data = doc.data();
-            documents.push({
-                id: doc.id,
-                title: data.title,
-                text: data.text,
-                imageUrl: data.imageUrl,
-                date: data.date
-            });
-        });
+        docsSnapshot.forEach(doc => { const data = doc.data(); documents.push({ id: doc.id, title: data.title, text: data.text, imageUrl: data.imageUrl, date: data.date }); });
+        
         renderAll();
     }
     
-    function renderAll() {
-        renderBusiness();
-        renderReviews();
-        renderNews();
-        renderMeetings();
-        renderDocuments();
-        renderEmployees();
-        updateStats();
-    }
+    function renderAll() { renderBusiness(); renderReviews(); renderNews(); renderMeetings(); renderDocuments(); renderEmployees(); updateStats(); }
     
     function renderBusiness() {
         const grid = document.getElementById("businessGrid");
         if(!grid) return;
-        
         let filteredBusinesses = businessesData;
         if (currentStatusFilter !== "all") filteredBusinesses = filteredBusinesses.filter(b => b.status === currentStatusFilter);
         if (currentTypeFilter !== "all") filteredBusinesses = filteredBusinesses.filter(b => b.type === currentTypeFilter);
@@ -1610,149 +1721,104 @@
             const statusUI = getStatusUI(biz.status);
             const typeDisplay = getTypeDisplay(biz.type);
             const imgHtml = biz.imgUrl ? `<img src="${biz.imgUrl}" alt="${biz.name}">` : `<div style="font-size: 3.5rem;">${biz.imgIcon || '🏢'}</div>`;
-            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}" title="Удалить бизнес">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}" title="Сменить картинку">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен для аренды</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select><div class="admin-only" style="margin-top: 0.5rem; font-size: 0.7rem; color: #718096;">${biz.mapX && biz.mapY ? `📍 Карта: ${biz.mapX.toFixed(1)}%, ${biz.mapY.toFixed(1)}%` : '📍 Координаты не заданы'}</div>` : ''}</div></div>`;
+            return `<div class="business-card" data-id="${biz.id}">${isAdmin ? `<button class="delete-business-btn admin-only" data-id="${biz.id}">✕</button>` : ''}<div class="business-img">${imgHtml}${isAdmin ? `<button class="change-image-btn admin-only" data-id="${biz.id}">🖼️ Сменить</button>` : ''}</div><div class="business-info"><h3>${escapeHtml(biz.name)}</h3><div class="business-address">📍 ${escapeHtml(biz.address)}</div><div class="business-type">${typeDisplay}</div><div class="rent-badge ${isAdmin ? 'editable-price' : ''}" data-id="${biz.id}">💰 Аренда: ${biz.price}</div><div class="status-badge ${statusUI.class}">${statusUI.text}</div>${isAdmin ? `<select class="status-select admin-only" data-id="${biz.id}"><option value="free" ${biz.status === "free" ? "selected" : ""}>🟢 Свободен</option><option value="occupied" ${biz.status === "occupied" ? "selected" : ""}>🔴 Занят</option><option value="pending" ${biz.status === "pending" ? "selected" : ""}>🟡 В обработке</option></select>` : ''}</div></div>`;
         }).join('');
         
         if(isAdmin) {
-            document.querySelectorAll('.status-select').forEach(select => select.addEventListener('change', async (e) => { const bizId = select.dataset.id; const newStatus = select.value; await db.collection('businesses').doc(bizId).update({ status: newStatus }); loadAllData(); }));
-            document.querySelectorAll('.editable-price').forEach(priceEl => priceEl.addEventListener('click', (e) => { currentBizId = priceEl.dataset.id; document.getElementById("priceInput").value = businessesData.find(b => b.id == currentBizId).price; document.getElementById("priceModal").style.display = "flex"; }));
-            document.querySelectorAll('.change-image-btn').forEach(btn => btn.addEventListener('click', (e) => { 
-                pendingImageBizId = btn.dataset.id;
-                document.getElementById("imageUrlInput").value = "";
-                document.getElementById("changeImageModal").style.display = "flex";
-            }));
-            document.querySelectorAll('.delete-business-btn').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); const bizId = btn.dataset.id; if(confirm("Удалить этот бизнес?")) { await db.collection('businesses').doc(bizId).delete(); loadAllData(); } }));
+            document.querySelectorAll('.status-select').forEach(select => select.addEventListener('change', async (e) => { const bizId = select.dataset.id; await db.collection('businesses').doc(bizId).update({ status: select.value }); loadAllData(); }));
+            document.querySelectorAll('.editable-price').forEach(priceEl => priceEl.addEventListener('click', (e) => { currentBizId = priceEl.dataset.id; document.getElementById("priceInput").value = businessesData.find(b => b.id == currentBizId)?.price; document.getElementById("priceModal").style.display = "flex"; }));
+            document.querySelectorAll('.change-image-btn').forEach(btn => btn.addEventListener('click', () => { pendingImageBizId = btn.dataset.id; document.getElementById("imageUrlInput").value = ""; document.getElementById("changeImageModal").style.display = "flex"; }));
+            document.querySelectorAll('.delete-business-btn').forEach(btn => btn.addEventListener('click', async (e) => { e.stopPropagation(); if(confirm("Удалить бизнес?")) { await db.collection('businesses').doc(btn.dataset.id).delete(); loadAllData(); } }));
         }
     }
     
     function initFilters() {
-        document.querySelectorAll('.status-filter').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentStatusFilter = btn.dataset.status;
-                renderBusiness();
-            });
-        });
-        document.querySelectorAll('.type-filter').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.type-filter').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentTypeFilter = btn.dataset.type;
-                renderBusiness();
-            });
-        });
+        document.querySelectorAll('.status-filter').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentStatusFilter = btn.dataset.status; renderBusiness(); }));
+        document.querySelectorAll('.type-filter').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.type-filter').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTypeFilter = btn.dataset.type; renderBusiness(); }));
     }
     
     function renderReviews() {
         const container = document.getElementById("reviewsContainer");
         if(!container) return;
-        if(reviews.length === 0) { container.innerHTML = "<div class='review-item'>Пока нет отзывов. Будьте первым!</div>"; return; }
-        container.innerHTML = reviews.map(r => `<div class="review-item"><div class="review-content"><div class="review-name">${escapeHtml(r.name)}</div><div class="review-date">${r.date}</div><p>${escapeHtml(r.text)}</p></div>${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️ Удалить</button>` : ''}</div>`).join('');
-        if(isAdmin) document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('reviews').doc(id).delete(); loadAllData(); }));
+        if(reviews.length === 0) { container.innerHTML = "<div class='review-item'>Пока нет отзывов.</div>"; return; }
+        container.innerHTML = reviews.map(r => `<div class="review-item"><div><div class="review-name">${escapeHtml(r.name)}</div><div class="review-date">${r.date}</div><p>${escapeHtml(r.text)}</p></div>${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️</button>` : ''}</div>`).join('');
+        if(isAdmin) document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('reviews').doc(btn.dataset.id).delete(); loadAllData(); }));
     }
     
     function renderNews() {
         const container = document.getElementById("newsContainer");
         if(!container) return;
-        if(news.length === 0) { container.innerHTML = "<div class='news-item'>Пока нет новостей. Следите за обновлениями!</div>"; return; }
-        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = n.videoUrl.split('v=')[1]?.split('&')[0]; if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news image" loading="lazy">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️ Удалить новость</button>` : ''}</div>`; }).join('');
-        if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('news').doc(id).delete(); loadAllData(); }));
+        if(news.length === 0) { container.innerHTML = "<div class='news-item'>Нет новостей.</div>"; return; }
+        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = n.videoUrl.split('v=')[1]?.split('&')[0]; if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️</button>` : ''}</div>`; }).join('');
+        if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('news').doc(btn.dataset.id).delete(); loadAllData(); }));
     }
     
     function renderMeetings() {
         const container = document.getElementById("meetingsList");
         if(!container) return;
-        if(meetings.length === 0) { container.innerHTML = "<div class='meeting-item'>Нет запланированных встреч.</div>"; return; }
-        container.innerHTML = meetings.map(m => { let statusText = "", statusClass = ""; if(m.status === "inwork") { statusText = "🟢 В работе"; statusClass = "status-inwork"; } else if(m.status === "accepted") { statusText = "🟡 Принято"; statusClass = "status-accepted"; } else { statusText = "🔵 Закончена"; statusClass = "status-finished"; } return `<div class="meeting-item"><div class="meeting-header"><div class="review-name">${escapeHtml(m.name)}</div><div class="meeting-status ${statusClass}">${statusText}</div></div><div>📞 ${m.phone || '—'}</div><div>🪪 ID карта: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">📅 ${m.date}</div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">🟢 В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">🟡 Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">🔵 Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️ Удалить</button>` : ''}</div>` : ''}</div>`; }).join('');
+        if(meetings.length === 0) { container.innerHTML = "<div class='meeting-item'>Нет заявок.</div>"; return; }
+        container.innerHTML = meetings.map(m => { let statusText = "", statusClass = ""; if(m.status === "inwork") { statusText = "🟢 В работе"; statusClass = "status-inwork"; } else if(m.status === "accepted") { statusText = "🟡 Принято"; statusClass = "status-accepted"; } else { statusText = "🔵 Закончена"; statusClass = "status-finished"; } return `<div class="meeting-item"><div><div class="review-name">${escapeHtml(m.name)}</div><div>📞 ${m.phone || '—'}</div><div>🪪 ID: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">${m.date}</div><div class="meeting-status ${statusClass}">${statusText}</div></div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️</button>` : ''}</div>` : ''}</div>`; }).join('');
         if(isAdmin) {
-            document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; const newStatus = btn.dataset.status; await db.collection('meetings').doc(id).update({ status: newStatus }); loadAllData(); }));
-            document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('meetings').doc(id).delete(); loadAllData(); }));
+            document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).update({ status: btn.dataset.status }); loadAllData(); }));
+            document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).delete(); loadAllData(); }));
         }
     }
     
     function renderDocuments() {
         const container = document.getElementById("documentsContainer");
         if(!container) return;
-        if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Пока нет документов.</div>"; return; }
-        container.innerHTML = [...documents].reverse().map(d => `<div class="doc-item"><div class="doc-date">📅 ${d.date}</div><div class="doc-title">${escapeHtml(d.title)}</div>${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc image" loading="lazy">` : ''}<div class="doc-text">${escapeHtml(d.text)}</div>${isAdmin ? `<button class="delete-doc" data-id="${d.id}">🗑️ Удалить документ</button>` : ''}</div>`).join('');
-        if(isAdmin) document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('documents').doc(id).delete(); loadAllData(); }));
+        if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Нет документов.</div>"; return; }
+        container.innerHTML = [...documents].reverse().map(d => `<div class="doc-item"><div class="doc-date">📅 ${d.date}</div><div class="doc-title">${escapeHtml(d.title)}</div>${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc">` : ''}<div class="doc-text">${escapeHtml(d.text)}</div>${isAdmin ? `<button class="delete-doc" data-id="${d.id}">🗑️</button>` : ''}</div>`).join('');
+        if(isAdmin) document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('documents').doc(btn.dataset.id).delete(); loadAllData(); }));
     }
     
     function renderEmployees() {
         const container = document.getElementById("employeesContainer");
         if(!container) return;
-        if(employees.length === 0) { container.innerHTML = "<div class='employee-card'>Сотрудников пока нет.</div>"; return; }
-        container.innerHTML = employees.map(emp => `<div class="employee-card"><div class="employee-photo">${emp.photoUrl ? `<img src="${emp.photoUrl}" alt="${emp.name}">` : `<div class="default-icon">${emp.icon || '👤'}</div>`}${isAdmin ? `<button class="change-employee-photo admin-only" data-id="${emp.id}">🖼️ Сменить фото</button>` : ''}</div><div class="employee-name">${escapeHtml(emp.name)}</div><div class="employee-position">${escapeHtml(emp.position)}</div>${isAdmin ? `<button class="delete-employee admin-only" data-id="${emp.id}">🗑️ Удалить</button>` : ''}</div>`).join('');
+        if(employees.length === 0) { container.innerHTML = "<div class='employee-card'>Нет сотрудников.</div>"; return; }
+        container.innerHTML = employees.map(emp => `<div class="employee-card"><div class="employee-photo">${emp.photoUrl ? `<img src="${emp.photoUrl}" alt="${emp.name}">` : `<div class="default-icon">👤</div>`}${isAdmin ? `<button class="change-employee-photo admin-only" data-id="${emp.id}">🖼️</button>` : ''}</div><div class="employee-name">${escapeHtml(emp.name)}</div><div class="employee-position">${escapeHtml(emp.position)}</div>${isAdmin ? `<button class="delete-employee admin-only" data-id="${emp.id}">🗑️</button>` : ''}</div>`).join('');
         if(isAdmin) {
-            document.querySelectorAll('.delete-employee').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('employees').doc(id).delete(); loadAllData(); }));
-            document.querySelectorAll('.change-employee-photo').forEach(btn => btn.addEventListener('click', (e) => { 
-                pendingEmployeeId = btn.dataset.id;
-                document.getElementById("employeePhotoUrlInput").value = "";
-                document.getElementById("changeEmployeePhotoModal").style.display = "flex";
-            }));
+            document.querySelectorAll('.delete-employee').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('employees').doc(btn.dataset.id).delete(); loadAllData(); }));
+            document.querySelectorAll('.change-employee-photo').forEach(btn => btn.addEventListener('click', () => { pendingEmployeeId = btn.dataset.id; document.getElementById("employeePhotoUrlInput").value = ""; document.getElementById("changeEmployeePhotoModal").style.display = "flex"; }));
         }
     }
     
-    function updateBusinessStats() { const total = businessesData.length; const freeCount = businessesData.filter(b => b.status === "free").length; document.getElementById("totalBusiness").innerText = total; document.getElementById("freeBusinessCount").innerText = freeCount; }
-    function updateStats() { document.getElementById("reviewCount").innerText = reviews.length; updateBusinessStats(); }
+    function updateStats() { document.getElementById("totalBusiness").innerText = businessesData.length; document.getElementById("freeBusinessCount").innerText = businessesData.filter(b => b.status === "free").length; document.getElementById("reviewCount").innerText = reviews.length; }
     
     function initInfoModal() {
         const modal = document.getElementById("infoModal"), modalBody = document.getElementById("infoModalBody"), closeBtn = modal.querySelector(".close-info-modal");
         document.querySelectorAll('.info-link').forEach(link => link.addEventListener("click", () => { const infoKey = link.dataset.info; if(infoKey && infoTexts[infoKey]) { modalBody.innerHTML = infoTexts[infoKey]; modal.style.display = "flex"; } }));
         closeBtn.addEventListener("click", () => modal.style.display = "none");
         modal.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
-        document.addEventListener("keydown", (e) => { if(e.key === "Escape" && modal.style.display === "flex") modal.style.display = "none"; });
     }
     
     function initPriceModal() {
         const modal = document.getElementById("priceModal"), saveBtn = document.getElementById("priceModalSave"), cancelBtn = document.getElementById("priceModalCancel");
-        saveBtn.addEventListener("click", async () => { const newPrice = document.getElementById("priceInput").value.trim(); if(newPrice) { await db.collection('businesses').doc(currentBizId).update({ price: newPrice }); loadAllData(); } modal.style.display = "none"; });
+        saveBtn.addEventListener("click", async () => { const newPrice = document.getElementById("priceInput").value.trim(); if(newPrice && currentBizId) { await db.collection('businesses').doc(currentBizId).update({ price: newPrice }); loadAllData(); } modal.style.display = "none"; });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
     
     function initChangeImageModal() {
         const modal = document.getElementById("changeImageModal"), saveBtn = document.getElementById("changeImageSave"), cancelBtn = document.getElementById("changeImageCancel");
-        saveBtn.addEventListener("click", async () => {
-            const url = document.getElementById("imageUrlInput").value.trim();
-            if (url) {
-                await db.collection('businesses').doc(pendingImageBizId).update({ imgUrl: url, imgIcon: null });
-                loadAllData();
-                modal.style.display = "none";
-            }
-        });
+        saveBtn.addEventListener("click", async () => { const url = document.getElementById("imageUrlInput").value.trim(); if(url && pendingImageBizId) { await db.collection('businesses').doc(pendingImageBizId).update({ imgUrl: url, imgIcon: null }); loadAllData(); } modal.style.display = "none"; });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
     
     function initChangeEmployeePhotoModal() {
         const modal = document.getElementById("changeEmployeePhotoModal"), saveBtn = document.getElementById("employeePhotoSave"), cancelBtn = document.getElementById("employeePhotoCancel");
-        saveBtn.addEventListener("click", async () => {
-            const url = document.getElementById("employeePhotoUrlInput").value.trim();
-            if (url) {
-                await db.collection('employees').doc(pendingEmployeeId).update({ photoUrl: url, icon: null });
-                loadAllData();
-                modal.style.display = "none";
-            }
-        });
+        saveBtn.addEventListener("click", async () => { const url = document.getElementById("employeePhotoUrlInput").value.trim(); if(url && pendingEmployeeId) { await db.collection('employees').doc(pendingEmployeeId).update({ photoUrl: url, icon: null }); loadAllData(); } modal.style.display = "none"; });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
     }
     
     function initAddBusinessModal() {
         const modal = document.getElementById("addBusinessModal"), saveBtn = document.getElementById("addBizSave"), cancelBtn = document.getElementById("addBizCancel");
-        saveBtn.addEventListener("click", async () => { 
-            const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value;
+        saveBtn.addEventListener("click", async () => { const name = document.getElementById("newBizName").value.trim(), address = document.getElementById("newBizAddress").value.trim(), price = document.getElementById("newBizPrice").value.trim(), type = document.getElementById("newBizType").value, status = document.getElementById("newBizStatus").value;
             if(!name || !address || !price) { alert("Заполните все поля"); return; } 
-            const newId = Date.now().toString(); 
-            await db.collection('businesses').doc(newId).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null }); 
-            document.getElementById("newBizName").value = ""; 
-            document.getElementById("newBizAddress").value = ""; 
-            document.getElementById("newBizPrice").value = ""; 
-            modal.style.display = "none"; 
-            loadAllData(); 
-        });
+            await db.collection('businesses').doc(Date.now().toString()).set({ name, address, price, type, status, imgIcon: "🏢", imgUrl: null }); 
+            document.getElementById("newBizName").value = ""; document.getElementById("newBizAddress").value = ""; document.getElementById("newBizPrice").value = ""; modal.style.display = "none"; loadAllData(); });
         cancelBtn.addEventListener("click", () => modal.style.display = "none");
         window.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
         document.getElementById("addBusinessBtn")?.addEventListener("click", () => modal.style.display = "flex");
@@ -1763,94 +1829,71 @@
         if(topicSelect) topicSelect.addEventListener("change", () => { if(topicSelect.value === "Другое") customField.classList.add("visible"); else customField.classList.remove("visible"); });
     }
     
-    function saveAdminStatus(admin) { sessionStorage.setItem("adminMode", admin ? "true" : "false"); }
-    function loadAdminStatus() { const saved = sessionStorage.getItem("adminMode"); if (saved === "true") { setAdminMode(true); } }
-    
     function setAdminMode(admin) {
         isAdmin = admin;
-        saveAdminStatus(admin);
+        sessionStorage.setItem("adminMode", admin ? "true" : "false");
         const body = document.body;
-        const adminBlock = document.getElementById("adminMeetingsBlock"), adminNewsBlock = document.getElementById("adminNewsBlock"), adminDocumentsBlock = document.getElementById("adminDocumentsBlock"), adminEmployeesBlock = document.getElementById("adminEmployeesBlock");
         if(isAdmin) {
             body.classList.add('admin-mode');
-            const authArea = document.getElementById("authArea");
-            authArea.innerHTML = `<div class="admin-panel"><span class="admin-badge">👑 АДМИН</span><button id="logoutBtn" class="admin-btn logout-btn">Выйти</button></div>`;
+            document.getElementById("authArea").innerHTML = `<div class="admin-panel"><span class="admin-badge">👑 АДМИН</span><button id="logoutBtn" class="admin-btn logout-btn">Выйти</button></div>`;
             document.getElementById("logoutBtn")?.addEventListener("click", () => setAdminMode(false));
+            document.getElementById("adminMeetingsBlock").style.display = "block";
+            document.getElementById("adminNewsBlock").style.display = "block";
+            document.getElementById("adminDocumentsBlock").style.display = "block";
+            document.getElementById("adminEmployeesBlock").style.display = "block";
+            document.getElementById("adminOrgBlock").style.display = "block";
+            addManualRefreshButton();
             renderAll();
-            if(adminBlock) adminBlock.style.display = "block"; if(adminNewsBlock) adminNewsBlock.style.display = "block"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "block"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "block";
-            setActiveSection("meeting");
+            if (document.getElementById('privateOrgList')?.style.display === 'block') loadPrivateOrgs();
         } else {
             body.classList.remove('admin-mode');
-            const authArea = document.getElementById("authArea");
-            authArea.innerHTML = `<button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>`;
-            document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
-            if(adminBlock) adminBlock.style.display = "none"; if(adminNewsBlock) adminNewsBlock.style.display = "none"; if(adminDocumentsBlock) adminDocumentsBlock.style.display = "none"; if(adminEmployeesBlock) adminEmployeesBlock.style.display = "none";
+            document.getElementById("authArea").innerHTML = `<button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>`;
+            document.getElementById("loginModalBtn")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "flex");
+            document.getElementById("adminMeetingsBlock").style.display = "none";
+            document.getElementById("adminNewsBlock").style.display = "none";
+            document.getElementById("adminDocumentsBlock").style.display = "none";
+            document.getElementById("adminEmployeesBlock").style.display = "none";
+            document.getElementById("adminOrgBlock").style.display = "none";
+            const manualBtn = document.getElementById('manualRefreshBtn');
+            if (manualBtn) manualBtn.remove();
             renderAll();
         }
     }
     
-    function showLoginModal() { document.getElementById("loginModal").style.display = "flex"; }
-    function hideLoginModal() { document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; }
-    
     async function checkAdminLogin() { 
         const pass = document.getElementById("adminPassword").value; 
-        const hashedPass = await hashPassword(pass);
-        if (hashedPass === ADMIN_PASSWORD_HASH) { 
-            setAdminMode(true); 
-            hideLoginModal(); 
-        } else { 
-            alert("Неверный пароль!"); 
-        } 
+        if(await hashPassword(pass) === ADMIN_PASSWORD_HASH) { setAdminMode(true); document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; } 
+        else alert("Неверный пароль!"); 
     }
     
     function setupForms() {
-        document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim(), text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст отзыва"); return; } if(!name) name = "Гражданин"; const newId = Date.now().toString(); await db.collection('reviews').doc(newId).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; alert("✅ Отзыв опубликован!"); loadAllData(); });
-        
-        document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Пожалуйста, укажите причину встречи"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля (имя, телефон, ID карта)"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон должен содержать 10 цифр"); return; } const newId = Date.now().toString(); await db.collection('meetings').doc(newId).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; alert("📅 Заявка отправлена! Администратор рассмотрит её."); loadAllData(); });
-        
-        document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(), text = document.getElementById("newsText").value.trim(), imageUrl = document.getElementById("newsImageUrl").value.trim(), videoUrl = document.getElementById("newsVideoUrl").value.trim(); if(!title || !text) { alert("Заполните заголовок и текст новости"); return; } const newId = Date.now().toString(); await db.collection('news').doc(newId).set({ title, text, imageUrl: imageUrl || null, videoUrl: videoUrl || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; alert("✅ Новость опубликована!"); loadAllData(); });
-        
-        document.getElementById("submitDoc")?.addEventListener("click", async () => { let title = document.getElementById("docTitle").value.trim(), text = document.getElementById("docText").value.trim(), imageUrl = document.getElementById("docImageUrl").value.trim(); if(!title || !text) { alert("Заполните название и текст документа"); return; } const newId = Date.now().toString(); await db.collection('documents').doc(newId).set({ title, text, imageUrl: imageUrl || null, date: new Date().toLocaleString() }); document.getElementById("docTitle").value = ""; document.getElementById("docText").value = ""; document.getElementById("docImageUrl").value = ""; document.getElementById("docImagePreviewContainer").innerHTML = ""; alert("✅ Документ опубликован!"); loadAllData(); });
-        
-        document.getElementById("submitEmployee")?.addEventListener("click", async () => { let name = document.getElementById("empName").value.trim(), position = document.getElementById("empPosition").value.trim(), photoUrl = document.getElementById("empPhotoUrl").value.trim(); if(!name || !position) { alert("Заполните имя и должность сотрудника"); return; } const newId = Date.now().toString(); await db.collection('employees').doc(newId).set({ name, position, photoUrl: photoUrl || null, icon: photoUrl ? null : "👤" }); document.getElementById("empName").value = ""; document.getElementById("empPosition").value = ""; document.getElementById("empPhotoUrl").value = ""; document.getElementById("empPhotoPreview").innerHTML = ""; alert("✅ Сотрудник добавлен!"); loadAllData(); });
-        
-        document.getElementById("newsImageUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("imagePreviewContainer"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
-        document.getElementById("docImageUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("docImagePreviewContainer"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
-        document.getElementById("empPhotoUrl")?.addEventListener("input", (e) => { const previewContainer = document.getElementById("empPhotoPreview"); const url = e.target.value.trim(); if(url) { previewContainer.innerHTML = `<img src="${url}" class="image-preview" alt="preview" style="max-width:100%; border-radius:12px;">`; } else { previewContainer.innerHTML = ""; } });
+        document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim() || "Гражданин", text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст"); return; } await db.collection('reviews').doc(Date.now().toString()).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; loadAllData(); });
+        document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Укажите причину"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон 10 цифр"); return; } await db.collection('meetings').doc(Date.now().toString()).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; loadAllData(); });
+        document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(), text = document.getElementById("newsText").value.trim(); if(!title || !text) { alert("Заполните заголовок и текст"); return; } await db.collection('news').doc(Date.now().toString()).set({ title, text, imageUrl: document.getElementById("newsImageUrl").value.trim() || null, videoUrl: document.getElementById("newsVideoUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; loadAllData(); });
+        document.getElementById("submitDoc")?.addEventListener("click", async () => { let title = document.getElementById("docTitle").value.trim(), text = document.getElementById("docText").value.trim(); if(!title || !text) { alert("Заполните название и текст"); return; } await db.collection('documents').doc(Date.now().toString()).set({ title, text, imageUrl: document.getElementById("docImageUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("docTitle").value = ""; document.getElementById("docText").value = ""; document.getElementById("docImageUrl").value = ""; document.getElementById("docImagePreviewContainer").innerHTML = ""; loadAllData(); });
+        document.getElementById("submitEmployee")?.addEventListener("click", async () => { let name = document.getElementById("empName").value.trim(), position = document.getElementById("empPosition").value.trim(); if(!name || !position) { alert("Заполните имя и должность"); return; } await db.collection('employees').doc(Date.now().toString()).set({ name, position, photoUrl: document.getElementById("empPhotoUrl").value.trim() || null, icon: "👤" }); document.getElementById("empName").value = ""; document.getElementById("empPosition").value = ""; document.getElementById("empPhotoUrl").value = ""; document.getElementById("empPhotoPreview").innerHTML = ""; loadAllData(); });
+        document.getElementById("newsImageUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("imagePreviewContainer").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
+        document.getElementById("docImageUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("docImagePreviewContainer").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
+        document.getElementById("empPhotoUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("empPhotoPreview").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
     }
     
     function setActiveSection(sectionId) {
         document.querySelectorAll(".section").forEach(sec => sec.classList.remove("active-section"));
         document.getElementById(sectionId)?.classList.add("active-section");
         document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-        const activeBtn = document.querySelector(`.nav-btn[data-section="${sectionId}"]`);
-        if(activeBtn) activeBtn.classList.add("active");
+        document.querySelector(`.nav-btn[data-section="${sectionId}"]`)?.classList.add("active");
         localStorage.setItem("activeSection", sectionId);
-        
-        // При переключении на вкладку карты — обновляем позицию
-        if (sectionId === "map") {
-            setTimeout(() => {
-                if (!isMapInitialized) {
-                    initMap();
-                } else {
-                    refreshMap();
-                }
-            }, 100);
-        }
+        if (sectionId === "map") setTimeout(() => { if (!isMapInitialized) initMap(); else refreshMap(); }, 100);
     }
     
     function initNavigation() {
-        document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => { const sectionId = btn.getAttribute("data-section"); if(sectionId) { setActiveSection(sectionId); window.scrollTo({ top: 0, behavior: "smooth" }); } }));
+        document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => { const sectionId = btn.dataset.section; if(sectionId) { setActiveSection(sectionId); window.scrollTo({ top: 0, behavior: "smooth" }); } }));
         const savedSection = localStorage.getItem("activeSection");
         if(savedSection && document.getElementById(savedSection)) setActiveSection(savedSection);
         else setActiveSection("home");
     }
     
-    function initEnterLogin() {
-        const passwordInput = document.getElementById("adminPassword");
-        if(passwordInput) { passwordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkAdminLogin(); }); }
-    }
-    
+    // ========== ЗАПУСК ==========
     setupRealtimeListeners();
     loadAllData();
     setupForms();
@@ -1861,18 +1904,21 @@
     initChangeEmployeePhotoModal();
     initAddBusinessModal();
     initMeetingForm();
-    initEnterLogin();
     initFilters();
     initTheme();
-    loadAdminStatus();
+    initPrivateOrgToggle();
+    initAddOrgModal();
     
-    // Не инициализируем карту сразу, дождёмся перехода на вкладку
-    // initMap() будет вызван при первом переключении на вкладку "map"
+    // Запускаем ежедневное обновление ссылок в 15:00
+    scheduleDailyRefresh();
     
-    document.getElementById("loginModalBtn")?.addEventListener("click", showLoginModal);
+    // Загружаем статус админа
+    if(sessionStorage.getItem("adminMode") === "true") setAdminMode(true);
+    
+    document.getElementById("loginModalBtn")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "flex");
     document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
-    document.getElementById("closeModal")?.addEventListener("click", hideLoginModal);
-    window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) hideLoginModal(); });
+    document.getElementById("closeModal")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "none");
+    window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) document.getElementById("loginModal").style.display = "none"; });
 </script>
 </body>
 </html>
