@@ -1374,7 +1374,6 @@
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
 </div>
 
-<!-- Модальные окна -->
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -1483,7 +1482,6 @@
     </div>
 </div>
 
-<!-- Модальное окно для просмотра картинок -->
 <div id="imageViewerModal" class="image-viewer-modal">
     <button class="image-viewer-close">&times;</button>
     <img id="imageViewerImg" class="image-viewer-content" alt="Увеличенное изображение">
@@ -1512,7 +1510,7 @@
         });
     }
     
-    // ========== ПРОСМОТР КАРТИНОК В УВЕЛИЧЕННОМ РАЗМЕРЕ ==========
+    // ========== ПРОСМОТР КАРТИНОК ==========
     function initImageViewer() {
         const modal = document.getElementById('imageViewerModal');
         const viewerImg = document.getElementById('imageViewerImg');
@@ -1554,15 +1552,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const ADMIN_PASSWORD_HASH = "9ba06e3a3c07dcd7981db6d0cf81328b3e2e79d234064e6e485e5f0ee2fcbe0b";
-
-    async function hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // ПАРОЛЬ АДМИНИСТРАТОРА (прямая проверка)
+    const ADMIN_PASSWORD = "Admin351_LosSantos_2024!";
 
     const infoTexts = {
         businessOwner: `<h3>🏪 Правила ведения бизнесов</h3><p><strong>1.</strong> Открываться не менее двух раз в неделю.</p><p><strong>2.</strong> В неделю бизнес должен быть открыт не менее 6 часов.</p><p><strong>3.</strong> Подача отчёта в Экономический отдел Мэрии обязательна в конце недели — не позднее понедельника, включая воскресенье. Премия будет вручена пяти наиболее активным бизнесам по итогам рассмотрения отчётов.</p><p><strong>4.</strong> Обязательное ведение социальных сетей – instapic или birdy.</p><p><strong>5.</strong> Переоформление бизнеса на другого человека составляет 5% от первоначальной стоимости бизнеса.</p><p><strong>6.</strong> В любой момент Экономический отдел может провести проверку бизнеса, согласно Законодательству штата.</p><p><strong>Ответственность за нарушения:</strong> В случае нарушения одного из пунктов заведению будет вынесено сначала предупреждение, на второй раз штраф в 25% от стоимости бизнеса, после изымается в руки государству.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`,
@@ -1593,8 +1584,6 @@
     };
     let currentReviewsCount = 0;
     let currentMeetingsCount = 0;
-    let notificationsBtn = null;
-    let notificationsDropdown = null;
     
     function updateNotifications() {
         const wrapper = document.getElementById('notificationsWrapper');
@@ -1656,7 +1645,8 @@
                     setActiveSection('meeting');
                     markNotificationsAsSeen('meetings');
                 }
-                if (notificationsDropdown) notificationsDropdown.classList.remove('show');
+                const dropdown = document.getElementById('notificationsDropdown');
+                if (dropdown) dropdown.classList.remove('show');
             });
         });
     }
@@ -1673,25 +1663,20 @@
     }
     
     function initNotifications() {
-        notificationsBtn = document.getElementById('notificationsBtn');
-        notificationsDropdown = document.getElementById('notificationsDropdown');
+        const btn = document.getElementById('notificationsBtn');
+        const dropdown = document.getElementById('notificationsDropdown');
         
-        if (!notificationsBtn || !notificationsDropdown) return;
+        if (!btn || !dropdown) return;
         
-        notificationsBtn.addEventListener('click', (e) => {
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            notificationsDropdown.classList.toggle('show');
+            dropdown.classList.toggle('show');
         });
         
         document.addEventListener('click', () => {
-            if (notificationsDropdown) notificationsDropdown.classList.remove('show');
+            dropdown.classList.remove('show');
         });
         
-        if (notificationsDropdown) {
-            notificationsDropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
     }
     
     // ========== АВТООБНОВЛЕНИЕ ССЫЛОК КАЖДЫЙ ДЕНЬ В 15:00 ==========
@@ -2361,8 +2346,13 @@
     
     async function checkAdminLogin() { 
         const pass = document.getElementById("adminPassword").value; 
-        if(await hashPassword(pass) === ADMIN_PASSWORD_HASH) { setAdminMode(true); document.getElementById("loginModal").style.display = "none"; document.getElementById("adminPassword").value = ""; } 
-        else alert("Неверный пароль!"); 
+        if (pass === ADMIN_PASSWORD) { 
+            setAdminMode(true); 
+            document.getElementById("loginModal").style.display = "none"; 
+            document.getElementById("adminPassword").value = ""; 
+        } else { 
+            alert("Неверный пароль!"); 
+        } 
     }
     
     function setupForms() {
