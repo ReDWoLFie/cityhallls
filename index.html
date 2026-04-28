@@ -352,6 +352,7 @@
             color: transparent;
             transition: all 0.3s ease;
         }
+        
         .nav-links {
             display: flex;
             flex-wrap: wrap;
@@ -397,6 +398,77 @@
         .admin-btn { background: #c9a87b; border: none; padding: 0.3rem 1rem; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
         .login-btn { background: #2f6b2f; color: white; }
         .logout-btn { background: #9b2c2c; color: white; }
+        
+        /* Оповещения */
+        .notifications-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+        }
+        .notifications-dropdown {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 200;
+            border: 1px solid #c9a87b;
+        }
+        body.theme-gta .notifications-dropdown {
+            background: #1e293b;
+            border-color: #f59e0b;
+        }
+        .notifications-dropdown.show {
+            display: block;
+        }
+        .notification-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        body.theme-gta .notification-item {
+            border-bottom-color: #334155;
+        }
+        .notification-item:hover {
+            background: #c9a87b20;
+        }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        .notification-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .notification-desc {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+        body.theme-gta .notification-desc {
+            color: #94a3b8;
+        }
+        
         .container { max-width: 1600px; margin: 2rem auto; padding: 0 2rem 4rem; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active-section { display: block; }
@@ -497,6 +569,23 @@
         body.theme-gta .map-coords-info {
             background: #0f1724;
             color: #94a3b8;
+        }
+        
+        /* Кнопка обновления карты */
+        .update-map-btn {
+            background: #4a6a8a;
+            color: white;
+            margin-left: 10px;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .update-map-btn:hover {
+            background: #5a7a9a;
+            transform: scale(1.02);
         }
         
         .toast-notification {
@@ -697,13 +786,19 @@
         }
         .price-modal-buttons { display: flex; gap: 1rem; justify-content: flex-end; }
         .news-list { display: flex; flex-direction: column; gap: 1.5rem; }
-        .news-item { background: #f8f9fa; border-radius: 16px; padding: 1.2rem; border-left: 3px solid #c9a87b; }
-        .news-image { max-width: 100%; border-radius: 12px; margin: 0.8rem 0; max-height: 300px; object-fit: cover; }
+        .news-item { 
+            background: #f8f9fa; 
+            border-radius: 16px; 
+            padding: 1.2rem; 
+            border-left: 3px solid #c9a87b;
+            text-align: center;
+        }
+        .news-image { max-width: 100%; border-radius: 12px; margin: 0.8rem auto; max-height: 300px; object-fit: cover; display: block; }
         .news-video { position: relative; padding-bottom: 56.25%; height: 0; margin: 0.8rem 0; border-radius: 12px; overflow: hidden; }
         .news-video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; }
-        .news-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; }
-        .news-text { color: #1a1f2e; line-height: 1.5; }
+        .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; text-align: center; }
+        .news-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; text-align: center; }
+        .news-text { color: #1a1f2e; line-height: 1.5; text-align: center; }
         .delete-news { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
         .add-news-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
         .add-news-form input, .add-news-form textarea { width: 100%; margin-bottom: 0.8rem; }
@@ -846,14 +941,59 @@
             border-radius: 16px;
             border-left: 3px solid #c9a87b;
             display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .review-header {
+            display: flex;
             justify-content: space-between;
             align-items: flex-start;
             flex-wrap: wrap;
         }
         .review-name { font-weight: 700; color: #1a1f2e; font-size: 1rem; }
-        .review-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.3rem; }
+        .review-date { font-size: 0.7rem; color: #718096; }
         .review-content p { color: #1a1f2e; line-height: 1.4; }
-        .delete-review { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-left: 1rem; }
+        .review-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .reply-btn {
+            background: #4a6a8a;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: none;
+        }
+        .reply-btn:hover {
+            background: #5a7a9a;
+        }
+        .review-answer {
+            margin-top: 0.8rem;
+            padding: 0.8rem;
+            background: #e2e8f0;
+            border-radius: 12px;
+            border-left: 3px solid #2f6b2f;
+        }
+        body.theme-gta .review-answer {
+            background: #0f1724;
+            border-left-color: #f59e0b;
+        }
+        .answer-text {
+            font-size: 0.85rem;
+            color: #1a1f2e;
+            margin-bottom: 0.3rem;
+        }
+        body.theme-gta .answer-text {
+            color: #cbd5e6;
+        }
+        .answer-date {
+            font-size: 0.65rem;
+            color: #718096;
+        }
+        .delete-review { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
         .meetings-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
         .meeting-item { background: #f8f9fa; padding: 1rem; border-radius: 16px; border-left: 3px solid #c9a87b; }
         .meeting-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -948,22 +1088,6 @@
             background: #c9a87b20;
             border-radius: 16px;
         }
-        
-        .manual-refresh-btn {
-            background: #4a6a8a;
-            color: white;
-            margin-left: 10px;
-            padding: 0.3rem 0.8rem;
-            border-radius: 30px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s;
-        }
-        .manual-refresh-btn:hover {
-            background: #5a7a9a;
-            transform: scale(1.02);
-        }
     </style>
 </head>
 <body>
@@ -1002,7 +1126,7 @@
                 <div class="add-news-form">
                     <h3>➕ Добавить новость</h3>
                     <input type="text" id="newsTitle" placeholder="Заголовок новости">
-                    <textarea id="newsText" rows="3" placeholder="Текст новости..."></textarea>
+                    <textarea id="newsText" rows="3" placeholder="Текст новости (необязательно)"></textarea>
                     <input type="text" id="newsImageUrl" placeholder="Ссылка на картинку (опционально)">
                     <input type="text" id="newsVideoUrl" placeholder="Ссылка на YouTube видео (опционально)">
                     <div id="imagePreviewContainer"></div>
@@ -1098,7 +1222,12 @@
 
     <div id="map" class="section">
         <div class="card">
-            <h2>🗺️ Карта штата Сан-Андреас</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                <h2 style="margin-bottom: 0;">🗺️ Карта штата Сан-Андреас</h2>
+                <div class="admin-only">
+                    <button id="updateMapBtn" class="update-map-btn">🖼️ Обновить карту</button>
+                </div>
+            </div>
             <p>🖱️ <strong>Управление:</strong> перетаскивайте карту зажатой левой кнопкой, масштабируйте колёсиком мыши или кнопками +/−.</p>
             <div class="map-wrapper" id="mapWrapper">
                 <div class="map-container" id="mapContainer">
@@ -1249,6 +1378,28 @@
     </div>
 </div>
 
+<div id="replyModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>💬 Ответить на отзыв</h3>
+        <textarea id="replyText" rows="3" placeholder="Введите ответ на отзыв..."></textarea>
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="replySave">Отправить ответ</button>
+            <button id="replyCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="updateMapModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>🖼️ Обновить карту</h3>
+        <input type="text" id="mapImageUrl" placeholder="Вставьте ссылку на новую картинку карты" value="https://cdn.discordapp.com/attachments/1497218767397322782/1497734351990030547/95086422aa2ccb1e.jpg?ex=69ee9950&is=69ed47d0&hm=4841dcb286192d260aeedc31933b564be5202264bd1f9d7a78d72bbaecb4e007&">
+        <div class="price-modal-buttons" style="margin-top: 1rem;">
+            <button id="updateMapSave">Обновить</button>
+            <button id="updateMapCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
 <div id="infoModal" class="info-modal">
     <div class="info-modal-content">
         <button class="close-info-modal">&times;</button>
@@ -1325,18 +1476,126 @@
     let currentBizId = null;
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
+    let pendingReplyReviewId = null;
     let unsubscribeFunctions = [];
     let privateOrgs = [];
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
     
+    // ========== ОПОВЕЩЕНИЯ ==========
+    let lastSeenCount = {
+        reviews: parseInt(localStorage.getItem('lastSeenReviews') || '0'),
+        meetings: parseInt(localStorage.getItem('lastSeenMeetings') || '0')
+    };
+    let currentReviewsCount = 0;
+    let currentMeetingsCount = 0;
+    let notificationsBtn = null;
+    let notificationsDropdown = null;
+    
+    function updateNotifications() {
+        const wrapper = document.getElementById('notificationsWrapper');
+        const badge = document.getElementById('notificationBadge');
+        const listContainer = document.getElementById('notificationsList');
+        
+        if (!isAdmin) {
+            if (wrapper) wrapper.style.display = 'none';
+            return;
+        }
+        
+        if (wrapper) wrapper.style.display = 'inline-block';
+        
+        const newReviews = Math.max(0, currentReviewsCount - lastSeenCount.reviews);
+        const newMeetings = Math.max(0, currentMeetingsCount - lastSeenCount.meetings);
+        const totalNew = newReviews + newMeetings;
+        
+        if (badge) {
+            if (totalNew > 0) {
+                badge.textContent = totalNew;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        let html = '';
+        if (totalNew === 0) {
+            html = '<div style="text-align: center; padding: 1rem; color: #718096;">Нет новых уведомлений</div>';
+        } else {
+            if (newReviews > 0) {
+                const lastReviews = [...reviews].reverse().slice(0, newReviews);
+                lastReviews.forEach(r => {
+                    html += `<div class="notification-item" data-type="reviews" data-id="${r.id}">
+                        <div class="notification-title">💬 Новый отзыв</div>
+                        <div class="notification-desc">От: ${escapeHtml(r.name)} — "${escapeHtml(r.text.substring(0, 50))}${r.text.length > 50 ? '...' : ''}"</div>
+                    </div>`;
+                });
+            }
+            if (newMeetings > 0) {
+                const lastMeetings = [...meetings].reverse().slice(0, newMeetings);
+                lastMeetings.forEach(m => {
+                    html += `<div class="notification-item" data-type="meetings" data-id="${m.id}">
+                        <div class="notification-title">📅 Новая заявка на приём</div>
+                        <div class="notification-desc">От: ${escapeHtml(m.name)} — ${escapeHtml(m.topic)}${m.customTopic ? ': ' + escapeHtml(m.customTopic) : ''}</div>
+                    </div>`;
+                });
+            }
+        }
+        if (listContainer) listContainer.innerHTML = html;
+        
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.dataset.type;
+                if (type === 'reviews') {
+                    setActiveSection('feedback');
+                    markNotificationsAsSeen('reviews');
+                } else if (type === 'meetings') {
+                    setActiveSection('meeting');
+                    markNotificationsAsSeen('meetings');
+                }
+                if (notificationsDropdown) notificationsDropdown.classList.remove('show');
+            });
+        });
+    }
+    
+    function markNotificationsAsSeen(type) {
+        if (type === 'reviews') {
+            lastSeenCount.reviews = currentReviewsCount;
+            localStorage.setItem('lastSeenReviews', currentReviewsCount);
+        } else if (type === 'meetings') {
+            lastSeenCount.meetings = currentMeetingsCount;
+            localStorage.setItem('lastSeenMeetings', currentMeetingsCount);
+        }
+        updateNotifications();
+    }
+    
+    function initNotifications() {
+        notificationsBtn = document.getElementById('notificationsBtn');
+        notificationsDropdown = document.getElementById('notificationsDropdown');
+        
+        if (!notificationsBtn || !notificationsDropdown) return;
+        
+        notificationsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', () => {
+            if (notificationsDropdown) notificationsDropdown.classList.remove('show');
+        });
+        
+        if (notificationsDropdown) {
+            notificationsDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+    }
+    
     // ========== АВТООБНОВЛЕНИЕ ССЫЛОК КАЖДЫЙ ДЕНЬ В 15:00 ==========
     async function refreshAllImageLinks() {
         console.log('🔄 Начинаю перезапись ссылок на картинки...');
         let updatedCount = 0;
         
-        // Бизнесы
         const businessesSnapshot = await db.collection('businesses').get();
         for (const doc of businessesSnapshot.docs) {
             const data = doc.data();
@@ -1346,7 +1605,6 @@
             }
         }
         
-        // Сотрудники
         const employeesSnapshot = await db.collection('employees').get();
         for (const doc of employeesSnapshot.docs) {
             const data = doc.data();
@@ -1356,7 +1614,6 @@
             }
         }
         
-        // Новости
         const newsSnapshot = await db.collection('news').get();
         for (const doc of newsSnapshot.docs) {
             const data = doc.data();
@@ -1366,7 +1623,6 @@
             }
         }
         
-        // Документы
         const docsSnapshot = await db.collection('documents').get();
         for (const doc of docsSnapshot.docs) {
             const data = doc.data();
@@ -1385,10 +1641,9 @@
         }
     }
     
-    // Функция для проверки и запуска автообновления в 15:00
     function scheduleDailyRefresh() {
         const now = new Date();
-        const targetHour = 15; // 15:00
+        const targetHour = 15;
         const targetMinute = 0;
         
         let nextRefresh = new Date(now);
@@ -1403,23 +1658,55 @@
         
         setTimeout(() => {
             refreshAllImageLinks();
-            scheduleDailyRefresh(); // Запускаем следующий цикл
+            scheduleDailyRefresh();
         }, msUntilRefresh);
     }
     
-    // Ручная кнопка обновления для админа
-    function addManualRefreshButton() {
-        const adminPanel = document.querySelector('.admin-panel');
-        if (adminPanel && !document.getElementById('manualRefreshBtn')) {
-            const refreshBtn = document.createElement('button');
-            refreshBtn.id = 'manualRefreshBtn';
-            refreshBtn.textContent = '🖼️ Обновить ссылки';
-            refreshBtn.className = 'manual-refresh-btn';
-            refreshBtn.onclick = () => {
-                refreshAllImageLinks();
-                showToast('🔄 Начинаю перезапись ссылок...');
-            };
-            adminPanel.appendChild(refreshBtn);
+    // ========== ОБНОВЛЕНИЕ КАРТЫ ==========
+    function initUpdateMapModal() {
+        const modal = document.getElementById('updateMapModal');
+        const saveBtn = document.getElementById('updateMapSave');
+        const cancelBtn = document.getElementById('updateMapCancel');
+        const updateBtn = document.getElementById('updateMapBtn');
+        
+        if (!modal || !saveBtn || !cancelBtn || !updateBtn) return;
+        
+        updateBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+        
+        saveBtn.addEventListener('click', async () => {
+            const newUrl = document.getElementById('mapImageUrl').value.trim();
+            if (!newUrl) {
+                alert('Введите ссылку на картинку');
+                return;
+            }
+            
+            // Сохраняем новую ссылку в localStorage и обновляем картинку
+            localStorage.setItem('mapImageUrl', newUrl);
+            const mapImg = document.getElementById('gtaMapImage');
+            if (mapImg) {
+                mapImg.src = newUrl;
+            }
+            modal.style.display = 'none';
+            showToast('✅ Карта обновлена! Масштаб и позиция сохранены.');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+        
+        // Загружаем сохранённую ссылку при инициализации
+        const savedMapUrl = localStorage.getItem('mapImageUrl');
+        if (savedMapUrl) {
+            const mapImg = document.getElementById('gtaMapImage');
+            if (mapImg && mapImg.src !== savedMapUrl) {
+                mapImg.src = savedMapUrl;
+            }
         }
     }
     
@@ -1670,8 +1957,8 @@
         if (unsubscribeFunctions.length) { unsubscribeFunctions.forEach(unsub => unsub()); unsubscribeFunctions = []; }
         unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('employees').onSnapshot(() => loadAllData()));
-        unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => loadAllData()));
-        unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => loadAllData()));
+        unsubscribeFunctions.push(db.collection('reviews').onSnapshot(() => { loadAllData(); updateNotifications(); }));
+        unsubscribeFunctions.push(db.collection('meetings').onSnapshot(() => { loadAllData(); updateNotifications(); }));
         unsubscribeFunctions.push(db.collection('news').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('documents').onSnapshot(() => loadAllData()));
         unsubscribeFunctions.push(db.collection('privateOrgs').onSnapshot(() => { if (document.getElementById('privateOrgList')?.style.display === 'block') loadPrivateOrgs(); }));
@@ -1691,11 +1978,13 @@
         
         const reviewsSnapshot = await db.collection('reviews').get();
         reviews = [];
-        reviewsSnapshot.forEach(doc => { const data = doc.data(); reviews.push({ id: doc.id, name: data.name, text: data.text, date: data.date }); });
+        reviewsSnapshot.forEach(doc => { const data = doc.data(); reviews.push({ id: doc.id, name: data.name, text: data.text, date: data.date, answer: data.answer, answerDate: data.answerDate }); });
+        currentReviewsCount = reviews.length;
         
         const meetingsSnapshot = await db.collection('meetings').get();
         meetings = [];
         meetingsSnapshot.forEach(doc => { const data = doc.data(); meetings.push({ id: doc.id, name: data.name, phone: data.phone, cardId: data.cardId, topic: data.topic, customTopic: data.customTopic, status: data.status, date: data.date }); });
+        currentMeetingsCount = meetings.length;
         
         const newsSnapshot = await db.collection('news').get();
         news = [];
@@ -1706,6 +1995,7 @@
         docsSnapshot.forEach(doc => { const data = doc.data(); documents.push({ id: doc.id, title: data.title, text: data.text, imageUrl: data.imageUrl, date: data.date }); });
         
         renderAll();
+        updateNotifications();
     }
     
     function renderAll() { renderBusiness(); renderReviews(); renderNews(); renderMeetings(); renderDocuments(); renderEmployees(); updateStats(); }
@@ -1737,19 +2027,99 @@
         document.querySelectorAll('.type-filter').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.type-filter').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTypeFilter = btn.dataset.type; renderBusiness(); }));
     }
     
+    function initReplyModal() {
+        const modal = document.getElementById('replyModal');
+        const saveBtn = document.getElementById('replySave');
+        const cancelBtn = document.getElementById('replyCancel');
+        
+        if (!modal || !saveBtn || !cancelBtn) return;
+        
+        saveBtn.addEventListener('click', async () => {
+            const answer = document.getElementById('replyText').value.trim();
+            if (!answer) {
+                alert('Введите ответ');
+                return;
+            }
+            if (pendingReplyReviewId) {
+                await db.collection('reviews').doc(pendingReplyReviewId).update({
+                    answer: answer,
+                    answerDate: new Date().toLocaleString()
+                });
+                showToast('✅ Ответ добавлен к отзыву');
+                loadAllData();
+            }
+            modal.style.display = 'none';
+            document.getElementById('replyText').value = '';
+            pendingReplyReviewId = null;
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.getElementById('replyText').value = '';
+            pendingReplyReviewId = null;
+        });
+        
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    
     function renderReviews() {
         const container = document.getElementById("reviewsContainer");
         if(!container) return;
         if(reviews.length === 0) { container.innerHTML = "<div class='review-item'>Пока нет отзывов.</div>"; return; }
-        container.innerHTML = reviews.map(r => `<div class="review-item"><div><div class="review-name">${escapeHtml(r.name)}</div><div class="review-date">${r.date}</div><p>${escapeHtml(r.text)}</p></div>${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️</button>` : ''}</div>`).join('');
-        if(isAdmin) document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('reviews').doc(btn.dataset.id).delete(); loadAllData(); }));
+        
+        container.innerHTML = [...reviews].reverse().map(r => {
+            const answerHtml = r.answer ? `
+                <div class="review-answer">
+                    <div class="answer-text">📝 <strong>Ответ администрации:</strong> ${escapeHtml(r.answer)}</div>
+                    <div class="answer-date">${r.answerDate || ''}</div>
+                </div>
+            ` : '';
+            
+            return `
+                <div class="review-item">
+                    <div class="review-header">
+                        <div>
+                            <div class="review-name">${escapeHtml(r.name)}</div>
+                            <div class="review-date">${r.date}</div>
+                        </div>
+                        ${isAdmin ? `<button class="delete-review" data-id="${r.id}">🗑️ Удалить</button>` : ''}
+                    </div>
+                    <div class="review-content"><p>${escapeHtml(r.text)}</p></div>
+                    ${answerHtml}
+                    ${isAdmin && !r.answer ? `<div class="review-actions"><button class="reply-btn" data-id="${r.id}">💬 Ответить</button></div>` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        if(isAdmin) {
+            document.querySelectorAll('.delete-review').forEach(btn => btn.addEventListener('click', async (e) => { const id = btn.dataset.id; await db.collection('reviews').doc(id).delete(); loadAllData(); }));
+            document.querySelectorAll('.reply-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                pendingReplyReviewId = btn.dataset.id;
+                document.getElementById('replyText').value = '';
+                document.getElementById('replyModal').style.display = 'flex';
+            }));
+        }
     }
     
     function renderNews() {
         const container = document.getElementById("newsContainer");
         if(!container) return;
         if(news.length === 0) { container.innerHTML = "<div class='news-item'>Нет новостей.</div>"; return; }
-        container.innerHTML = [...news].reverse().map(n => { let videoHtml = ''; if(n.videoUrl) { const videoId = n.videoUrl.split('v=')[1]?.split('&')[0]; if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; } return `<div class="news-item"><div class="news-date">📅 ${n.date}</div><div class="news-title">${escapeHtml(n.title)}</div>${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news">` : ''}${videoHtml}<div class="news-text">${escapeHtml(n.text)}</div>${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️</button>` : ''}</div>`; }).join('');
+        container.innerHTML = [...news].reverse().map(n => { 
+            let videoHtml = ''; 
+            if(n.videoUrl) { 
+                const videoId = n.videoUrl.split('v=')[1]?.split('&')[0]; 
+                if(videoId) videoHtml = `<div class="news-video"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`; 
+            } 
+            return `<div class="news-item">
+                <div class="news-date">📅 ${n.date}</div>
+                <div class="news-title">${escapeHtml(n.title)}</div>
+                ${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news">` : ''}
+                ${videoHtml}
+                ${n.text ? `<div class="news-text">${escapeHtml(n.text)}</div>` : ''}
+                ${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️</button>` : ''}
+            </div>`;
+        }).join('');
         if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('news').doc(btn.dataset.id).delete(); loadAllData(); }));
     }
     
@@ -1757,7 +2127,13 @@
         const container = document.getElementById("meetingsList");
         if(!container) return;
         if(meetings.length === 0) { container.innerHTML = "<div class='meeting-item'>Нет заявок.</div>"; return; }
-        container.innerHTML = meetings.map(m => { let statusText = "", statusClass = ""; if(m.status === "inwork") { statusText = "🟢 В работе"; statusClass = "status-inwork"; } else if(m.status === "accepted") { statusText = "🟡 Принято"; statusClass = "status-accepted"; } else { statusText = "🔵 Закончена"; statusClass = "status-finished"; } return `<div class="meeting-item"><div><div class="review-name">${escapeHtml(m.name)}</div><div>📞 ${m.phone || '—'}</div><div>🪪 ID: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">${m.date}</div><div class="meeting-status ${statusClass}">${statusText}</div></div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️</button>` : ''}</div>` : ''}</div>`; }).join('');
+        container.innerHTML = [...meetings].reverse().map(m => { 
+            let statusText = "", statusClass = ""; 
+            if(m.status === "inwork") { statusText = "🟢 В работе"; statusClass = "status-inwork"; } 
+            else if(m.status === "accepted") { statusText = "🟡 Принято"; statusClass = "status-accepted"; } 
+            else { statusText = "🔵 Закончена"; statusClass = "status-finished"; } 
+            return `<div class="meeting-item"><div><div class="review-name">${escapeHtml(m.name)}</div><div>📞 ${m.phone || '—'}</div><div>🪪 ID: ${m.cardId || '—'}</div><div>📌 ${escapeHtml(m.topic)}${m.customTopic ? `: ${escapeHtml(m.customTopic)}` : ''}</div><div class="review-date">${m.date}</div><div class="meeting-status ${statusClass}">${statusText}</div></div>${isAdmin ? `<div class="meeting-actions"><button class="status-btn" data-id="${m.id}" data-status="inwork">В работе</button><button class="status-btn" data-id="${m.id}" data-status="accepted">Принято</button><button class="status-btn" data-id="${m.id}" data-status="finished">Закончена</button>${m.status === "finished" ? `<button class="delete-finished-btn" data-id="${m.id}">🗑️</button>` : ''}</div>` : ''}</div>`; 
+        }).join('');
         if(isAdmin) {
             document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).update({ status: btn.dataset.status }); loadAllData(); }));
             document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).delete(); loadAllData(); }));
@@ -1835,16 +2211,40 @@
         const body = document.body;
         if(isAdmin) {
             body.classList.add('admin-mode');
-            document.getElementById("authArea").innerHTML = `<div class="admin-panel"><span class="admin-badge">👑 АДМИН</span><button id="logoutBtn" class="admin-btn logout-btn">Выйти</button></div>`;
+            document.getElementById("authArea").innerHTML = `<div class="admin-panel" style="display: flex; gap: 0.8rem; align-items: center;">
+                <span class="admin-badge">👑 АДМИН</span>
+                <button id="manualRefreshBtn" class="admin-btn" style="background: #4a6a8a; color: white;">🖼️ Обновить ссылки</button>
+                <div class="notifications-wrapper" style="position: relative; display: inline-block;" id="notificationsWrapper">
+                    <button class="admin-btn" id="notificationsBtn" style="background: #40444b; position: relative;">
+                        🔔 <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+                    </button>
+                    <div id="notificationsDropdown" class="notifications-dropdown">
+                        <div id="notificationsList" style="padding: 0.5rem;">
+                            <div style="text-align: center; padding: 1rem; color: #718096;">Нет новых уведомлений</div>
+                        </div>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="admin-btn logout-btn">Выйти</button>
+            </div>`;
+            
             document.getElementById("logoutBtn")?.addEventListener("click", () => setAdminMode(false));
+            document.getElementById("manualRefreshBtn")?.addEventListener("click", () => {
+                refreshAllImageLinks();
+                showToast('🔄 Начинаю перезапись ссылок...');
+            });
+            
             document.getElementById("adminMeetingsBlock").style.display = "block";
             document.getElementById("adminNewsBlock").style.display = "block";
             document.getElementById("adminDocumentsBlock").style.display = "block";
             document.getElementById("adminEmployeesBlock").style.display = "block";
             document.getElementById("adminOrgBlock").style.display = "block";
-            addManualRefreshButton();
             renderAll();
             if (document.getElementById('privateOrgList')?.style.display === 'block') loadPrivateOrgs();
+            
+            setTimeout(() => {
+                initNotifications();
+                updateNotifications();
+            }, 100);
         } else {
             body.classList.remove('admin-mode');
             document.getElementById("authArea").innerHTML = `<button id="loginModalBtn" class="nav-btn login-btn">🔐 Вход для админа</button>`;
@@ -1854,8 +2254,6 @@
             document.getElementById("adminDocumentsBlock").style.display = "none";
             document.getElementById("adminEmployeesBlock").style.display = "none";
             document.getElementById("adminOrgBlock").style.display = "none";
-            const manualBtn = document.getElementById('manualRefreshBtn');
-            if (manualBtn) manualBtn.remove();
             renderAll();
         }
     }
@@ -1869,7 +2267,7 @@
     function setupForms() {
         document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim() || "Гражданин", text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст"); return; } await db.collection('reviews').doc(Date.now().toString()).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; loadAllData(); });
         document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Укажите причину"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон 10 цифр"); return; } await db.collection('meetings').doc(Date.now().toString()).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; loadAllData(); });
-        document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(), text = document.getElementById("newsText").value.trim(); if(!title || !text) { alert("Заполните заголовок и текст"); return; } await db.collection('news').doc(Date.now().toString()).set({ title, text, imageUrl: document.getElementById("newsImageUrl").value.trim() || null, videoUrl: document.getElementById("newsVideoUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; loadAllData(); });
+        document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(); if(!title) { alert("Заполните заголовок"); return; } if(!document.getElementById("newsText").value.trim() && !document.getElementById("newsImageUrl").value.trim() && !document.getElementById("newsVideoUrl").value.trim()) { alert("Добавьте текст или картинку/видео"); return; } await db.collection('news').doc(Date.now().toString()).set({ title, text: document.getElementById("newsText").value.trim() || null, imageUrl: document.getElementById("newsImageUrl").value.trim() || null, videoUrl: document.getElementById("newsVideoUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; loadAllData(); });
         document.getElementById("submitDoc")?.addEventListener("click", async () => { let title = document.getElementById("docTitle").value.trim(), text = document.getElementById("docText").value.trim(); if(!title || !text) { alert("Заполните название и текст"); return; } await db.collection('documents').doc(Date.now().toString()).set({ title, text, imageUrl: document.getElementById("docImageUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("docTitle").value = ""; document.getElementById("docText").value = ""; document.getElementById("docImageUrl").value = ""; document.getElementById("docImagePreviewContainer").innerHTML = ""; loadAllData(); });
         document.getElementById("submitEmployee")?.addEventListener("click", async () => { let name = document.getElementById("empName").value.trim(), position = document.getElementById("empPosition").value.trim(); if(!name || !position) { alert("Заполните имя и должность"); return; } await db.collection('employees').doc(Date.now().toString()).set({ name, position, photoUrl: document.getElementById("empPhotoUrl").value.trim() || null, icon: "👤" }); document.getElementById("empName").value = ""; document.getElementById("empPosition").value = ""; document.getElementById("empPhotoUrl").value = ""; document.getElementById("empPhotoPreview").innerHTML = ""; loadAllData(); });
         document.getElementById("newsImageUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("imagePreviewContainer").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
@@ -1883,7 +2281,11 @@
         document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
         document.querySelector(`.nav-btn[data-section="${sectionId}"]`)?.classList.add("active");
         localStorage.setItem("activeSection", sectionId);
+        
         if (sectionId === "map") setTimeout(() => { if (!isMapInitialized) initMap(); else refreshMap(); }, 100);
+        
+        if (sectionId === "feedback") markNotificationsAsSeen('reviews');
+        if (sectionId === "meeting") markNotificationsAsSeen('meetings');
     }
     
     function initNavigation() {
@@ -1908,11 +2310,11 @@
     initTheme();
     initPrivateOrgToggle();
     initAddOrgModal();
+    initReplyModal();
+    initUpdateMapModal();
     
-    // Запускаем ежедневное обновление ссылок в 15:00
     scheduleDailyRefresh();
     
-    // Загружаем статус админа
     if(sessionStorage.getItem("adminMode") === "true") setAdminMode(true);
     
     document.getElementById("loginModalBtn")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "flex");
