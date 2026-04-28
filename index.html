@@ -469,6 +469,47 @@
             color: #94a3b8;
         }
         
+        /* Модальное окно для просмотра картинок */
+        .image-viewer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .image-viewer-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .image-viewer-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .image-viewer-close:hover {
+            transform: scale(1.1);
+            color: #c9a87b;
+        }
+        body.theme-gta .image-viewer-close:hover {
+            color: #f59e0b;
+        }
+        
         .container { max-width: 1600px; margin: 2rem auto; padding: 0 2rem 4rem; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active-section { display: block; }
@@ -793,7 +834,23 @@
             border-left: 3px solid #c9a87b;
             text-align: center;
         }
-        .news-image { max-width: 100%; border-radius: 12px; margin: 0.8rem auto; max-height: 300px; object-fit: cover; display: block; }
+        .news-image { 
+            max-width: 100%; 
+            border-radius: 12px; 
+            margin: 0.8rem auto; 
+            max-height: 300px; 
+            object-fit: cover; 
+            display: block;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .news-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        body.theme-gta .news-image:hover {
+            box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        }
         .news-video { position: relative; padding-bottom: 56.25%; height: 0; margin: 0.8rem 0; border-radius: 12px; overflow: hidden; }
         .news-video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; text-align: center; }
@@ -1308,6 +1365,7 @@
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
 </div>
 
+<!-- Модальные окна -->
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -1416,6 +1474,12 @@
     </div>
 </div>
 
+<!-- Модальное окно для просмотра картинок -->
+<div id="imageViewerModal" class="image-viewer-modal">
+    <button class="image-viewer-close">&times;</button>
+    <img id="imageViewerImg" class="image-viewer-content" alt="Увеличенное изображение">
+</div>
+
 <script>
     // ========== ТЕМА ==========
     function initTheme() {
@@ -1437,6 +1501,38 @@
                 themeToggle.textContent = "🎨 Тема";
             }
         });
+    }
+    
+    // ========== ПРОСМОТР КАРТИНОК В УВЕЛИЧЕННОМ РАЗМЕРЕ ==========
+    function initImageViewer() {
+        const modal = document.getElementById('imageViewerModal');
+        const viewerImg = document.getElementById('imageViewerImg');
+        const closeBtn = modal.querySelector('.image-viewer-close');
+        
+        // Закрытие по клику на фон или крестик
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target === closeBtn) {
+                modal.style.display = 'none';
+                viewerImg.src = '';
+            }
+        });
+        
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                modal.style.display = 'none';
+                viewerImg.src = '';
+            }
+        });
+    }
+    
+    function openImageViewer(imageUrl) {
+        const modal = document.getElementById('imageViewerModal');
+        const viewerImg = document.getElementById('imageViewerImg');
+        if (modal && viewerImg && imageUrl) {
+            viewerImg.src = imageUrl;
+            modal.style.display = 'flex';
+        }
     }
     
     // ========== FIREBASE ==========
@@ -1682,7 +1778,6 @@
                 return;
             }
             
-            // Сохраняем новую ссылку в localStorage и обновляем картинку
             localStorage.setItem('mapImageUrl', newUrl);
             const mapImg = document.getElementById('gtaMapImage');
             if (mapImg) {
@@ -1700,7 +1795,6 @@
             if (e.target === modal) modal.style.display = 'none';
         });
         
-        // Загружаем сохранённую ссылку при инициализации
         const savedMapUrl = localStorage.getItem('mapImageUrl');
         if (savedMapUrl) {
             const mapImg = document.getElementById('gtaMapImage');
@@ -2114,7 +2208,7 @@
             return `<div class="news-item">
                 <div class="news-date">📅 ${n.date}</div>
                 <div class="news-title">${escapeHtml(n.title)}</div>
-                ${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news">` : ''}
+                ${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news" onclick="openImageViewer('${n.imageUrl}')">` : ''}
                 ${videoHtml}
                 ${n.text ? `<div class="news-text">${escapeHtml(n.text)}</div>` : ''}
                 ${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️</button>` : ''}
@@ -2312,6 +2406,7 @@
     initAddOrgModal();
     initReplyModal();
     initUpdateMapModal();
+    initImageViewer();
     
     scheduleDailyRefresh();
     
