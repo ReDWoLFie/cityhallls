@@ -37,6 +37,7 @@
         
         body.theme-gta .nav-btn {
             color: #94a3b8;
+            background: transparent;
         }
         
         body.theme-gta .nav-btn.active, body.theme-gta .nav-btn:hover {
@@ -325,7 +326,7 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid #c9a87b30;
-            padding: 1rem 2rem;
+            padding: 0.8rem 2rem;
             transition: all 0.3s ease;
         }
         .nav {
@@ -336,14 +337,16 @@
             justify-content: center;
             align-items: center;
             gap: 1rem;
+            min-height: 56px;
         }
         .logo {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-right: auto;
+            white-space: nowrap;
         }
         .logo span {
             background: linear-gradient(135deg, #c9a87b, #a8845a);
@@ -356,46 +359,52 @@
         .nav-links {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.8rem;
+            gap: 0.6rem;
             align-items: center;
             justify-content: center;
+            flex: 1 1 auto;
         }
         .nav-btn {
             background: transparent;
             border: none;
             color: #a0a5b0;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            padding: 0.5rem 1.2rem;
+            padding: 0.45rem 1.1rem;
             border-radius: 40px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
+            white-space: nowrap;
         }
         .nav-btn.active, .nav-btn:hover {
             background: #c9a87b;
             color: #2c2f33;
             box-shadow: 0 0 12px #c9a87b80;
         }
+        .theme-btn, .notifications-wrapper button, .admin-panel button, .admin-panel .admin-btn, .login-btn, .logout-btn {
+            white-space: nowrap;
+        }
         .theme-btn {
             background: #40444b;
             border: none;
             border-radius: 40px;
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 1rem;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.2s;
+            color: #e2e8f0;
         }
         .admin-panel {
             display: flex;
-            gap: 0.8rem;
+            gap: 0.6rem;
             align-items: center;
             background: #40444b;
-            padding: 0.3rem 1rem;
+            padding: 0.25rem 0.8rem;
             border-radius: 60px;
         }
-        .admin-badge { background: #9b2c2c; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; }
-        .admin-btn { background: #c9a87b; border: none; padding: 0.3rem 1rem; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .admin-badge { background: #9b2c2c; padding: 0.2rem 0.7rem; border-radius: 30px; font-size: 0.7rem; font-weight: bold; color: white; }
+        .admin-btn { background: #c9a87b; border: none; padding: 0.25rem 0.8rem; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 0.75rem; color: #2c2f33; }
         .login-btn { background: #2f6b2f; color: white; }
         .logout-btn { background: #9b2c2c; color: white; }
         
@@ -423,13 +432,13 @@
         .notifications-dropdown {
             display: none;
             position: absolute;
-            top: 45px;
+            top: 40px;
             right: 0;
-            width: 300px;
-            max-height: 400px;
+            width: 280px;
+            max-height: 350px;
             overflow-y: auto;
             background: white;
-            border-radius: 16px;
+            border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             z-index: 200;
             border: 1px solid #c9a87b;
@@ -442,7 +451,7 @@
             display: block;
         }
         .notification-item {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 1px solid #e2e8f0;
             cursor: pointer;
             transition: background 0.2s;
@@ -458,12 +467,12 @@
         }
         .notification-title {
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         .notification-desc {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #718096;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         body.theme-gta .notification-desc {
             color: #94a3b8;
@@ -1108,7 +1117,7 @@
         }
         @media (max-width: 900px) {
             .nav { flex-direction: column; }
-            .logo { margin-right: 0; }
+            .logo { margin-right: 0; margin-bottom: 0.5rem; }
             .business-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
             .filters-bar { flex-direction: column; align-items: flex-start; }
             .map-wrapper { height: 400px; }
@@ -1509,7 +1518,6 @@
         const viewerImg = document.getElementById('imageViewerImg');
         const closeBtn = modal.querySelector('.image-viewer-close');
         
-        // Закрытие по клику на фон или крестик
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target === closeBtn) {
                 modal.style.display = 'none';
@@ -1517,7 +1525,6 @@
             }
         });
         
-        // Закрытие по Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.style.display === 'flex') {
                 modal.style.display = 'none';
