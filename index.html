@@ -355,6 +355,43 @@
             color: transparent;
             transition: all 0.3s ease;
         }
+
+        /* Стили для ссылки на LS LIFE */
+        .ls-life-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ff4d4d, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-left: 15px;
+            padding: 4px 10px;
+            border-radius: 40px;
+            transition: all 0.3s ease;
+            border: 1px solid #ff8c0050;
+        }
+        .ls-life-link:hover {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            background-clip: text;
+            transform: scale(1.02);
+            border-color: #ff8c00;
+            box-shadow: 0 0 12px #ff8c0080;
+        }
+        body.theme-gta .ls-life-link {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            background-clip: text;
+            border-color: #ffa50060;
+        }
+        body.theme-gta .ls-life-link:hover {
+            border-color: #ffa500;
+            box-shadow: 0 0 15px #ffa500;
+        }
         
         .nav-links {
             display: flex;
@@ -1162,6 +1199,10 @@
     <div class="nav">
         <div class="logo">
             🏛️ <span>Мэрия Лос-Сантоса</span>
+            <!-- Новая ссылка на LS LIFE -->
+            <a href="https://redwolfie.github.io/society/" target="_blank" class="ls-life-link">
+                🔥 LS LIFE
+            </a>
         </div>
         <div class="nav-links">
             <button class="nav-btn active" data-section="home">🏠 Главная</button>
