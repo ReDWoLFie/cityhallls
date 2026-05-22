@@ -864,7 +864,7 @@
             padding: 2rem;
             border: 1px solid #c9a87b;
         }
-        .price-modal-content input, .price-modal-content select {
+        .price-modal-content input, .price-modal-content select, .price-modal-content textarea {
             width: 100%;
             padding: 0.8rem;
             border-radius: 16px;
@@ -878,7 +878,7 @@
             border-radius: 16px; 
             padding: 1.2rem; 
             border-left: 3px solid #c9a87b;
-            text-align: center;
+            text-align: left; /* изменено с center на left для лучшего чтения */
         }
         .news-image { 
             max-width: 100%; 
@@ -899,10 +899,16 @@
         }
         .news-video { position: relative; padding-bottom: 56.25%; height: 0; margin: 0.8rem 0; border-radius: 12px; overflow: hidden; }
         .news-video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-        .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; text-align: center; }
-        .news-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; text-align: center; }
-        .news-text { color: #1a1f2e; line-height: 1.5; text-align: center; }
-        .delete-news { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
+        .news-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; text-align: left; }
+        .news-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; text-align: left; }
+        .news-text { 
+            color: #1a1f2e; 
+            line-height: 1.5; 
+            text-align: left; 
+            white-space: pre-wrap; /* сохраняем переносы строк */
+        }
+        .delete-news { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; margin-right: 0.5rem; }
+        .edit-news { background: #4a6a8a; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
         .add-news-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
         .add-news-form input, .add-news-form textarea { width: 100%; margin-bottom: 0.8rem; }
         .image-preview { max-width: 200px; max-height: 120px; margin: 0.5rem 0; border-radius: 12px; }
@@ -1199,7 +1205,6 @@
     <div class="nav">
         <div class="logo">
             🏛️ <span>Мэрия Лос-Сантоса</span>
-            <!-- Новая ссылка на LS LIFE -->
             <a href="https://redwolfie.github.io/society/" target="_blank" class="ls-life-link">
                 🔥 LS LIFE
             </a>
@@ -1415,6 +1420,22 @@
     <footer>🏛️ Мэрия Лос-Сантоса | Project Bloodlines</footer>
 </div>
 
+<!-- Модальное окно редактирования новости -->
+<div id="editNewsModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>✏️ Редактировать новость</h3>
+        <input type="text" id="editNewsTitle" placeholder="Заголовок">
+        <textarea id="editNewsText" rows="4" placeholder="Текст новости (можно использовать переносы строк)"></textarea>
+        <input type="text" id="editNewsImageUrl" placeholder="Ссылка на картинку">
+        <input type="text" id="editNewsVideoUrl" placeholder="Ссылка на YouTube видео">
+        <div id="editImagePreviewContainer"></div>
+        <div class="price-modal-buttons">
+            <button id="editNewsSave">Сохранить</button>
+            <button id="editNewsCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -1612,6 +1633,7 @@
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
     let pendingReplyReviewId = null;
+    let pendingEditNewsId = null; // для редактирования новости
     let unsubscribeFunctions = [];
     let privateOrgs = [];
     
@@ -2228,6 +2250,13 @@
         }
     }
     
+    // Функция для форматирования текста с сохранением переносов строк
+    function formatNewsText(text) {
+        if (!text) return '';
+        // Экранируем HTML, затем заменяем \n на <br>
+        return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    
     function renderNews() {
         const container = document.getElementById("newsContainer");
         if(!container) return;
@@ -2243,11 +2272,92 @@
                 <div class="news-title">${escapeHtml(n.title)}</div>
                 ${n.imageUrl ? `<img src="${n.imageUrl}" class="news-image" alt="news" onclick="openImageViewer('${n.imageUrl}')">` : ''}
                 ${videoHtml}
-                ${n.text ? `<div class="news-text">${escapeHtml(n.text)}</div>` : ''}
-                ${isAdmin ? `<button class="delete-news" data-id="${n.id}">🗑️</button>` : ''}
+                ${n.text ? `<div class="news-text">${formatNewsText(n.text)}</div>` : ''}
+                <div>
+                    ${isAdmin ? `<button class="edit-news admin-only" data-id="${n.id}">✏️ Редактировать</button>` : ''}
+                    ${isAdmin ? `<button class="delete-news admin-only" data-id="${n.id}">🗑️ Удалить</button>` : ''}
+                </div>
             </div>`;
         }).join('');
-        if(isAdmin) document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('news').doc(btn.dataset.id).delete(); loadAllData(); }));
+        
+        if(isAdmin) {
+            document.querySelectorAll('.delete-news').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('news').doc(btn.dataset.id).delete(); loadAllData(); }));
+            document.querySelectorAll('.edit-news').forEach(btn => btn.addEventListener('click', (e) => {
+                const newsId = btn.dataset.id;
+                const newsItem = news.find(n => n.id === newsId);
+                if (newsItem) {
+                    pendingEditNewsId = newsId;
+                    document.getElementById('editNewsTitle').value = newsItem.title || '';
+                    document.getElementById('editNewsText').value = newsItem.text || '';
+                    document.getElementById('editNewsImageUrl').value = newsItem.imageUrl || '';
+                    document.getElementById('editNewsVideoUrl').value = newsItem.videoUrl || '';
+                    // Обновить превью картинки
+                    const previewContainer = document.getElementById('editImagePreviewContainer');
+                    if (newsItem.imageUrl) {
+                        previewContainer.innerHTML = `<img src="${newsItem.imageUrl}" class="image-preview">`;
+                    } else {
+                        previewContainer.innerHTML = '';
+                    }
+                    document.getElementById('editNewsModal').style.display = 'flex';
+                }
+            }));
+        }
+    }
+    
+    function initEditNewsModal() {
+        const modal = document.getElementById('editNewsModal');
+        const saveBtn = document.getElementById('editNewsSave');
+        const cancelBtn = document.getElementById('editNewsCancel');
+        const imageUrlInput = document.getElementById('editNewsImageUrl');
+        const previewContainer = document.getElementById('editImagePreviewContainer');
+        
+        if (!modal || !saveBtn || !cancelBtn) return;
+        
+        // Превью при изменении URL картинки
+        imageUrlInput.addEventListener('input', () => {
+            const url = imageUrlInput.value.trim();
+            if (url) {
+                previewContainer.innerHTML = `<img src="${url}" class="image-preview">`;
+            } else {
+                previewContainer.innerHTML = '';
+            }
+        });
+        
+        saveBtn.addEventListener('click', async () => {
+            if (!pendingEditNewsId) return;
+            const newTitle = document.getElementById('editNewsTitle').value.trim();
+            if (!newTitle) {
+                alert('Заголовок не может быть пустым');
+                return;
+            }
+            const newText = document.getElementById('editNewsText').value.trim() || null;
+            const newImageUrl = document.getElementById('editNewsImageUrl').value.trim() || null;
+            const newVideoUrl = document.getElementById('editNewsVideoUrl').value.trim() || null;
+            
+            await db.collection('news').doc(pendingEditNewsId).update({
+                title: newTitle,
+                text: newText,
+                imageUrl: newImageUrl,
+                videoUrl: newVideoUrl,
+                // дату не трогаем, оставляем оригинальную
+            });
+            showToast('✅ Новость обновлена');
+            modal.style.display = 'none';
+            pendingEditNewsId = null;
+            loadAllData();
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            pendingEditNewsId = null;
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                pendingEditNewsId = null;
+            }
+        });
     }
     
     function renderMeetings() {
@@ -2445,6 +2555,7 @@
     initReplyModal();
     initUpdateMapModal();
     initImageViewer();
+    initEditNewsModal(); // инициализируем модалку редактирования новостей
     
     scheduleDailyRefresh();
     
