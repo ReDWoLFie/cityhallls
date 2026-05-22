@@ -907,6 +907,13 @@
             text-align: left; 
             white-space: pre-wrap; /* сохраняем переносы строк */
         }
+        .news-text a {
+            color: #c9a87b;
+            text-decoration: underline;
+        }
+        body.theme-gta .news-text a {
+            color: #f59e0b;
+        }
         .delete-news { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; margin-right: 0.5rem; }
         .edit-news { background: #4a6a8a; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
         .add-news-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
@@ -2250,11 +2257,23 @@
         }
     }
     
-    // Функция для форматирования текста с сохранением переносов строк
+    // Функция для преобразования ссылок в тексте
+    function convertUrlsToLinks(text) {
+        if (!text) return '';
+        // Регулярное выражение для поиска URL (http://, https://)
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, function(url) {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+    }
+    
+    // Функция для форматирования текста с сохранением переносов строк и преобразованием ссылок
     function formatNewsText(text) {
         if (!text) return '';
-        // Экранируем HTML, затем заменяем \n на <br>
-        return escapeHtml(text).replace(/\n/g, '<br>');
+        // Экранируем HTML, затем заменяем \n на <br>, затем преобразуем ссылки
+        const escaped = escapeHtml(text);
+        const withBreaks = escaped.replace(/\n/g, '<br>');
+        return convertUrlsToLinks(withBreaks);
     }
     
     function renderNews() {
