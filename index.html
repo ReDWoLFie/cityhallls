@@ -356,41 +356,34 @@
             transition: all 0.3s ease;
         }
 
-        /* Стили для ссылки на LS LIFE */
-        .ls-life-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #ff4d4d, #ff8c00);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-left: 15px;
-            padding: 4px 10px;
+        /* Стиль для кнопки амнистии */
+        .amnesty-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient(135deg, #c9a87b, #a8845a);
+            color: #2c2f33;
+            padding: 1rem;
             border-radius: 40px;
-            transition: all 0.3s ease;
-            border: 1px solid #ff8c0050;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: 0.2s;
+            margin-bottom: 1.5rem;
+            border: none;
+            cursor: pointer;
         }
-        .ls-life-link:hover {
-            background: linear-gradient(135deg, #ff6b6b, #ffa500);
-            -webkit-background-clip: text;
-            background-clip: text;
-            transform: scale(1.02);
-            border-color: #ff8c00;
-            box-shadow: 0 0 12px #ff8c0080;
+        .amnesty-btn:hover {
+            background: linear-gradient(135deg, #d4bb94, #b8926a);
+            transform: scale(1.01);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
-        body.theme-gta .ls-life-link {
-            background: linear-gradient(135deg, #ff6b6b, #ffa500);
-            -webkit-background-clip: text;
-            background-clip: text;
-            border-color: #ffa50060;
+        body.theme-gta .amnesty-btn {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #0f1724;
         }
-        body.theme-gta .ls-life-link:hover {
-            border-color: #ffa500;
-            box-shadow: 0 0 15px #ffa500;
+        body.theme-gta .amnesty-btn:hover {
+            background: linear-gradient(135deg, #fbbf24, #f97316);
         }
         
         .nav-links {
@@ -878,7 +871,7 @@
             border-radius: 16px; 
             padding: 1.2rem; 
             border-left: 3px solid #c9a87b;
-            text-align: left; /* изменено с center на left для лучшего чтения */
+            text-align: left;
         }
         .news-image { 
             max-width: 100%; 
@@ -905,7 +898,7 @@
             color: #1a1f2e; 
             line-height: 1.5; 
             text-align: left; 
-            white-space: pre-wrap; /* сохраняем переносы строк */
+            white-space: pre-wrap;
         }
         .news-text a {
             color: #c9a87b;
@@ -1212,9 +1205,6 @@
     <div class="nav">
         <div class="logo">
             🏛️ <span>Мэрия Лос-Сантоса</span>
-            <a href="https://redwolfie.github.io/society/" target="_blank" class="ls-life-link">
-                🔥 LS LIFE
-            </a>
         </div>
         <div class="nav-links">
             <button class="nav-btn active" data-section="home">🏠 Главная</button>
@@ -1380,6 +1370,9 @@
     <div id="meeting" class="section">
         <div class="card">
             <h2>📝 Запись на личный приём</h2>
+            <!-- Новая кнопка амнистии -->
+            <a href="https://forms.gle/mXbQM5bu6czHeLMCA" target="_blank" class="amnesty-btn">📜 Подать заявление об амнистии</a>
+            
             <div class="meeting-form">
                 <input type="text" id="meetName" placeholder="Ваше имя / позывной">
                 <input type="tel" id="meetPhone" placeholder="Номер телефона (10 цифр)" maxlength="10">
@@ -1640,7 +1633,7 @@
     let pendingImageBizId = null;
     let pendingEmployeeId = null;
     let pendingReplyReviewId = null;
-    let pendingEditNewsId = null; // для редактирования новости
+    let pendingEditNewsId = null;
     let unsubscribeFunctions = [];
     let privateOrgs = [];
     
@@ -2260,17 +2253,14 @@
     // Функция для преобразования ссылок в тексте
     function convertUrlsToLinks(text) {
         if (!text) return '';
-        // Регулярное выражение для поиска URL (http://, https://)
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         return text.replace(urlRegex, function(url) {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
         });
     }
     
-    // Функция для форматирования текста с сохранением переносов строк и преобразованием ссылок
     function formatNewsText(text) {
         if (!text) return '';
-        // Экранируем HTML, затем заменяем \n на <br>, затем преобразуем ссылки
         const escaped = escapeHtml(text);
         const withBreaks = escaped.replace(/\n/g, '<br>');
         return convertUrlsToLinks(withBreaks);
@@ -2310,7 +2300,6 @@
                     document.getElementById('editNewsText').value = newsItem.text || '';
                     document.getElementById('editNewsImageUrl').value = newsItem.imageUrl || '';
                     document.getElementById('editNewsVideoUrl').value = newsItem.videoUrl || '';
-                    // Обновить превью картинки
                     const previewContainer = document.getElementById('editImagePreviewContainer');
                     if (newsItem.imageUrl) {
                         previewContainer.innerHTML = `<img src="${newsItem.imageUrl}" class="image-preview">`;
@@ -2332,7 +2321,6 @@
         
         if (!modal || !saveBtn || !cancelBtn) return;
         
-        // Превью при изменении URL картинки
         imageUrlInput.addEventListener('input', () => {
             const url = imageUrlInput.value.trim();
             if (url) {
@@ -2358,7 +2346,6 @@
                 text: newText,
                 imageUrl: newImageUrl,
                 videoUrl: newVideoUrl,
-                // дату не трогаем, оставляем оригинальную
             });
             showToast('✅ Новость обновлена');
             modal.style.display = 'none';
@@ -2574,7 +2561,7 @@
     initReplyModal();
     initUpdateMapModal();
     initImageViewer();
-    initEditNewsModal(); // инициализируем модалку редактирования новостей
+    initEditNewsModal();
     
     scheduleDailyRefresh();
     
