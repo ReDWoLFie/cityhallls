@@ -914,11 +914,26 @@
         .image-preview { max-width: 200px; max-height: 120px; margin: 0.5rem 0; border-radius: 12px; }
         .documents-list { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 0.5rem; }
         .doc-item { background: #f8f9fa; border-radius: 16px; padding: 1.2rem; border-left: 3px solid #c9a87b; }
-        .doc-image { max-width: 100%; border-radius: 12px; margin: 0.8rem 0; max-height: 300px; object-fit: cover; }
+        .doc-image { max-width: 100%; border-radius: 12px; margin: 0.8rem 0; max-height: 300px; object-fit: cover; cursor: pointer; transition: transform 0.2s; display: block; }
+        .doc-image:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        body.theme-gta .doc-image:hover { box-shadow: 0 4px 12px rgba(245,158,11,0.3); }
         .doc-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.5rem; }
         .doc-title { font-size: 1.2rem; font-weight: bold; color: #a8845a; margin-bottom: 0.5rem; }
-        .doc-text { color: #1a1f2e; line-height: 1.5; }
-        .delete-doc { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
+        .doc-text { 
+            color: #1a1f2e; 
+            line-height: 1.5; 
+            text-align: left; 
+            white-space: pre-wrap;
+        }
+        .doc-text a {
+            color: #c9a87b;
+            text-decoration: underline;
+        }
+        body.theme-gta .doc-text a {
+            color: #f59e0b;
+        }
+        .delete-doc { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; margin-right: 0.5rem; }
+        .edit-doc { background: #4a6a8a; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
         .add-doc-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
         .add-doc-form input, .add-doc-form textarea { width: 100%; margin-bottom: 0.8rem; }
         .business-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; margin-top: 1rem; }
@@ -1438,6 +1453,21 @@
     </div>
 </div>
 
+<!-- Модальное окно редактирования документа -->
+<div id="editDocModal" class="price-modal">
+    <div class="price-modal-content">
+        <h3>✏️ Редактировать документ</h3>
+        <input type="text" id="editDocTitle" placeholder="Название документа">
+        <textarea id="editDocText" rows="4" placeholder="Текст документа (можно использовать переносы строк)"></textarea>
+        <input type="text" id="editDocImageUrl" placeholder="Ссылка на картинку">
+        <div id="editDocImagePreviewContainer"></div>
+        <div class="price-modal-buttons">
+            <button id="editDocSave">Сохранить</button>
+            <button id="editDocCancel" style="background: #9b2c2c; color: white;">Отмена</button>
+        </div>
+    </div>
+</div>
+
 <div id="priceModal" class="price-modal">
     <div class="price-modal-content">
         <h3>💰 Изменение стоимости аренды</h3>
@@ -1636,6 +1666,7 @@
     let pendingEmployeeId = null;
     let pendingReplyReviewId = null;
     let pendingEditNewsId = null;
+    let pendingEditDocId = null; // для редактирования документа
     let unsubscribeFunctions = [];
     let privateOrgs = [];
     
@@ -2268,6 +2299,13 @@
         return convertUrlsToLinks(withBreaks);
     }
     
+    function formatDocText(text) {
+        if (!text) return '';
+        const escaped = escapeHtml(text);
+        const withBreaks = escaped.replace(/\n/g, '<br>');
+        return convertUrlsToLinks(withBreaks);
+    }
+    
     function renderNews() {
         const container = document.getElementById("newsContainer");
         if(!container) return;
@@ -2368,6 +2406,101 @@
         });
     }
     
+    // Редактирование документа
+    function initEditDocModal() {
+        const modal = document.getElementById('editDocModal');
+        const saveBtn = document.getElementById('editDocSave');
+        const cancelBtn = document.getElementById('editDocCancel');
+        const imageUrlInput = document.getElementById('editDocImageUrl');
+        const previewContainer = document.getElementById('editDocImagePreviewContainer');
+        
+        if (!modal || !saveBtn || !cancelBtn) return;
+        
+        imageUrlInput.addEventListener('input', () => {
+            const url = imageUrlInput.value.trim();
+            if (url) {
+                previewContainer.innerHTML = `<img src="${url}" class="image-preview">`;
+            } else {
+                previewContainer.innerHTML = '';
+            }
+        });
+        
+        saveBtn.addEventListener('click', async () => {
+            if (!pendingEditDocId) return;
+            const newTitle = document.getElementById('editDocTitle').value.trim();
+            if (!newTitle) {
+                alert('Название документа не может быть пустым');
+                return;
+            }
+            const newText = document.getElementById('editDocText').value.trim() || null;
+            const newImageUrl = document.getElementById('editDocImageUrl').value.trim() || null;
+            
+            await db.collection('documents').doc(pendingEditDocId).update({
+                title: newTitle,
+                text: newText,
+                imageUrl: newImageUrl,
+            });
+            showToast('✅ Документ обновлён');
+            modal.style.display = 'none';
+            pendingEditDocId = null;
+            loadAllData();
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            pendingEditDocId = null;
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                pendingEditDocId = null;
+            }
+        });
+    }
+    
+    function renderDocuments() {
+        const container = document.getElementById("documentsContainer");
+        if(!container) return;
+        if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Нет документов.</div>"; return; }
+        container.innerHTML = [...documents].reverse().map(d => `
+            <div class="doc-item">
+                <div class="doc-date">📅 ${d.date}</div>
+                <div class="doc-title">${escapeHtml(d.title)}</div>
+                ${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc" onclick="openImageViewer('${d.imageUrl}')">` : ''}
+                <div class="doc-text">${formatDocText(d.text)}</div>
+                <div>
+                    ${isAdmin ? `<button class="edit-doc admin-only" data-id="${d.id}">✏️ Редактировать</button>` : ''}
+                    ${isAdmin ? `<button class="delete-doc admin-only" data-id="${d.id}">🗑️ Удалить</button>` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        if(isAdmin) {
+            document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { 
+                await db.collection('documents').doc(btn.dataset.id).delete(); 
+                loadAllData(); 
+            }));
+            document.querySelectorAll('.edit-doc').forEach(btn => btn.addEventListener('click', (e) => {
+                const docId = btn.dataset.id;
+                const docItem = documents.find(d => d.id === docId);
+                if (docItem) {
+                    pendingEditDocId = docId;
+                    document.getElementById('editDocTitle').value = docItem.title || '';
+                    document.getElementById('editDocText').value = docItem.text || '';
+                    document.getElementById('editDocImageUrl').value = docItem.imageUrl || '';
+                    const previewContainer = document.getElementById('editDocImagePreviewContainer');
+                    if (docItem.imageUrl) {
+                        previewContainer.innerHTML = `<img src="${docItem.imageUrl}" class="image-preview">`;
+                    } else {
+                        previewContainer.innerHTML = '';
+                    }
+                    document.getElementById('editDocModal').style.display = 'flex';
+                }
+            }));
+        }
+    }
+    
     function renderMeetings() {
         const container = document.getElementById("meetingsList");
         if(!container) return;
@@ -2383,14 +2516,6 @@
             document.querySelectorAll('.status-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).update({ status: btn.dataset.status }); loadAllData(); }));
             document.querySelectorAll('.delete-finished-btn').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('meetings').doc(btn.dataset.id).delete(); loadAllData(); }));
         }
-    }
-    
-    function renderDocuments() {
-        const container = document.getElementById("documentsContainer");
-        if(!container) return;
-        if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Нет документов.</div>"; return; }
-        container.innerHTML = [...documents].reverse().map(d => `<div class="doc-item"><div class="doc-date">📅 ${d.date}</div><div class="doc-title">${escapeHtml(d.title)}</div>${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc">` : ''}<div class="doc-text">${escapeHtml(d.text)}</div>${isAdmin ? `<button class="delete-doc" data-id="${d.id}">🗑️</button>` : ''}</div>`).join('');
-        if(isAdmin) document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { await db.collection('documents').doc(btn.dataset.id).delete(); loadAllData(); }));
     }
     
     function renderEmployees() {
@@ -2564,6 +2689,7 @@
     initUpdateMapModal();
     initImageViewer();
     initEditNewsModal();
+    initEditDocModal();  // новая инициализация модалки для документов
     
     scheduleDailyRefresh();
     
