@@ -932,6 +932,29 @@
         body.theme-gta .doc-text a {
             color: #f59e0b;
         }
+        .doc-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            background: #4a6a8a20;
+            color: #4a6a8a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .doc-link:hover {
+            background: #4a6a8a40;
+            transform: scale(1.02);
+        }
+        body.theme-gta .doc-link {
+            background: #f59e0b20;
+            color: #f59e0b;
+        }
+        body.theme-gta .doc-link:hover {
+            background: #f59e0b40;
+        }
         .delete-doc { background: #9b2c2c; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; margin-right: 0.5rem; }
         .edit-doc { background: #4a6a8a; border: none; color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; margin-top: 0.8rem; }
         .add-doc-form { background: #f8f9fa; padding: 1rem; border-radius: 16px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; }
@@ -1293,6 +1316,7 @@
                     <input type="text" id="docTitle" placeholder="Название документа">
                     <textarea id="docText" rows="3" placeholder="Текст документа..."></textarea>
                     <input type="text" id="docImageUrl" placeholder="Ссылка на картинку (опционально)">
+                    <input type="text" id="docGoogleUrl" placeholder="Ссылка на Google Docs (опционально)">
                     <div id="docImagePreviewContainer"></div>
                     <button id="submitDoc">📄 Опубликовать документ</button>
                 </div>
@@ -1460,6 +1484,7 @@
         <input type="text" id="editDocTitle" placeholder="Название документа">
         <textarea id="editDocText" rows="4" placeholder="Текст документа (можно использовать переносы строк)"></textarea>
         <input type="text" id="editDocImageUrl" placeholder="Ссылка на картинку">
+        <input type="text" id="editDocGoogleUrl" placeholder="Ссылка на Google Docs">
         <div id="editDocImagePreviewContainer"></div>
         <div class="price-modal-buttons">
             <button id="editDocSave">Сохранить</button>
@@ -1666,7 +1691,7 @@
     let pendingEmployeeId = null;
     let pendingReplyReviewId = null;
     let pendingEditNewsId = null;
-    let pendingEditDocId = null; // для редактирования документа
+    let pendingEditDocId = null;
     let unsubscribeFunctions = [];
     let privateOrgs = [];
     
@@ -2174,7 +2199,17 @@
         
         const docsSnapshot = await db.collection('documents').get();
         documents = [];
-        docsSnapshot.forEach(doc => { const data = doc.data(); documents.push({ id: doc.id, title: data.title, text: data.text, imageUrl: data.imageUrl, date: data.date }); });
+        docsSnapshot.forEach(doc => { 
+            const data = doc.data(); 
+            documents.push({ 
+                id: doc.id, 
+                title: data.title, 
+                text: data.text, 
+                imageUrl: data.imageUrl, 
+                googleDocUrl: data.googleDocUrl || null,
+                date: data.date 
+            }); 
+        });
         
         renderAll();
         updateNotifications();
@@ -2412,6 +2447,7 @@
         const saveBtn = document.getElementById('editDocSave');
         const cancelBtn = document.getElementById('editDocCancel');
         const imageUrlInput = document.getElementById('editDocImageUrl');
+        const googleUrlInput = document.getElementById('editDocGoogleUrl');
         const previewContainer = document.getElementById('editDocImagePreviewContainer');
         
         if (!modal || !saveBtn || !cancelBtn) return;
@@ -2434,11 +2470,13 @@
             }
             const newText = document.getElementById('editDocText').value.trim() || null;
             const newImageUrl = document.getElementById('editDocImageUrl').value.trim() || null;
+            const newGoogleUrl = document.getElementById('editDocGoogleUrl').value.trim() || null;
             
             await db.collection('documents').doc(pendingEditDocId).update({
                 title: newTitle,
                 text: newText,
                 imageUrl: newImageUrl,
+                googleDocUrl: newGoogleUrl,
             });
             showToast('✅ Документ обновлён');
             modal.style.display = 'none';
@@ -2463,18 +2501,25 @@
         const container = document.getElementById("documentsContainer");
         if(!container) return;
         if(documents.length === 0) { container.innerHTML = "<div class='doc-item'>Нет документов.</div>"; return; }
-        container.innerHTML = [...documents].reverse().map(d => `
-            <div class="doc-item">
-                <div class="doc-date">📅 ${d.date}</div>
-                <div class="doc-title">${escapeHtml(d.title)}</div>
-                ${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc" onclick="openImageViewer('${d.imageUrl}')">` : ''}
-                <div class="doc-text">${formatDocText(d.text)}</div>
-                <div>
-                    ${isAdmin ? `<button class="edit-doc admin-only" data-id="${d.id}">✏️ Редактировать</button>` : ''}
-                    ${isAdmin ? `<button class="delete-doc admin-only" data-id="${d.id}">🗑️ Удалить</button>` : ''}
+        container.innerHTML = [...documents].reverse().map(d => {
+            let googleLinkHtml = '';
+            if (d.googleDocUrl) {
+                googleLinkHtml = `<a href="${d.googleDocUrl}" target="_blank" class="doc-link">📄 Открыть в Google Docs</a>`;
+            }
+            return `
+                <div class="doc-item">
+                    <div class="doc-date">📅 ${d.date}</div>
+                    <div class="doc-title">${escapeHtml(d.title)}</div>
+                    ${d.imageUrl ? `<img src="${d.imageUrl}" class="doc-image" alt="doc" onclick="openImageViewer('${d.imageUrl}')">` : ''}
+                    <div class="doc-text">${formatDocText(d.text)}</div>
+                    ${googleLinkHtml}
+                    <div>
+                        ${isAdmin ? `<button class="edit-doc admin-only" data-id="${d.id}">✏️ Редактировать</button>` : ''}
+                        ${isAdmin ? `<button class="delete-doc admin-only" data-id="${d.id}">🗑️ Удалить</button>` : ''}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
         
         if(isAdmin) {
             document.querySelectorAll('.delete-doc').forEach(btn => btn.addEventListener('click', async (e) => { 
@@ -2489,6 +2534,7 @@
                     document.getElementById('editDocTitle').value = docItem.title || '';
                     document.getElementById('editDocText').value = docItem.text || '';
                     document.getElementById('editDocImageUrl').value = docItem.imageUrl || '';
+                    document.getElementById('editDocGoogleUrl').value = docItem.googleDocUrl || '';
                     const previewContainer = document.getElementById('editDocImagePreviewContainer');
                     if (docItem.imageUrl) {
                         previewContainer.innerHTML = `<img src="${docItem.imageUrl}" class="image-preview">`;
@@ -2643,7 +2689,26 @@
         document.getElementById("submitFeedback")?.addEventListener("click", async () => { let name = document.getElementById("fbName").value.trim() || "Гражданин", text = document.getElementById("fbText").value.trim(); if(!text) { alert("Введите текст"); return; } await db.collection('reviews').doc(Date.now().toString()).set({ name, text, date: new Date().toLocaleString() }); document.getElementById("fbText").value = ""; loadAllData(); });
         document.getElementById("submitMeeting")?.addEventListener("click", async () => { let name = document.getElementById("meetName").value.trim(), phone = document.getElementById("meetPhone").value.trim(), cardId = document.getElementById("meetCardId").value.trim(), topic = document.getElementById("meetTopic").value, customTopic = ""; if(topic === "Другое") { customTopic = document.getElementById("meetCustomTopic").value.trim(); if(!customTopic) { alert("Укажите причину"); return; } } if(!name || !phone || !cardId) { alert("Заполните все поля"); return; } if(phone.length !== 10 || !/^\d+$/.test(phone)) { alert("Телефон 10 цифр"); return; } await db.collection('meetings').doc(Date.now().toString()).set({ name, phone, cardId, topic, customTopic: customTopic || null, status: "inwork", date: new Date().toLocaleString() }); document.getElementById("meetName").value = ""; document.getElementById("meetPhone").value = ""; document.getElementById("meetCardId").value = ""; document.getElementById("meetCustomTopic").value = ""; document.getElementById("customTopicField").classList.remove("visible"); document.getElementById("meetTopic").value = "Бизнес-вопрос"; loadAllData(); });
         document.getElementById("submitNews")?.addEventListener("click", async () => { let title = document.getElementById("newsTitle").value.trim(); if(!title) { alert("Заполните заголовок"); return; } if(!document.getElementById("newsText").value.trim() && !document.getElementById("newsImageUrl").value.trim() && !document.getElementById("newsVideoUrl").value.trim()) { alert("Добавьте текст или картинку/видео"); return; } await db.collection('news').doc(Date.now().toString()).set({ title, text: document.getElementById("newsText").value.trim() || null, imageUrl: document.getElementById("newsImageUrl").value.trim() || null, videoUrl: document.getElementById("newsVideoUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("newsTitle").value = ""; document.getElementById("newsText").value = ""; document.getElementById("newsImageUrl").value = ""; document.getElementById("newsVideoUrl").value = ""; document.getElementById("imagePreviewContainer").innerHTML = ""; loadAllData(); });
-        document.getElementById("submitDoc")?.addEventListener("click", async () => { let title = document.getElementById("docTitle").value.trim(), text = document.getElementById("docText").value.trim(); if(!title || !text) { alert("Заполните название и текст"); return; } await db.collection('documents').doc(Date.now().toString()).set({ title, text, imageUrl: document.getElementById("docImageUrl").value.trim() || null, date: new Date().toLocaleString() }); document.getElementById("docTitle").value = ""; document.getElementById("docText").value = ""; document.getElementById("docImageUrl").value = ""; document.getElementById("docImagePreviewContainer").innerHTML = ""; loadAllData(); });
+        document.getElementById("submitDoc")?.addEventListener("click", async () => { 
+            let title = document.getElementById("docTitle").value.trim(), 
+                text = document.getElementById("docText").value.trim(),
+                imageUrl = document.getElementById("docImageUrl").value.trim() || null,
+                googleUrl = document.getElementById("docGoogleUrl").value.trim() || null;
+            if(!title || !text) { alert("Заполните название и текст"); return; } 
+            await db.collection('documents').doc(Date.now().toString()).set({ 
+                title, 
+                text, 
+                imageUrl: imageUrl,
+                googleDocUrl: googleUrl,
+                date: new Date().toLocaleString() 
+            }); 
+            document.getElementById("docTitle").value = ""; 
+            document.getElementById("docText").value = ""; 
+            document.getElementById("docImageUrl").value = ""; 
+            document.getElementById("docGoogleUrl").value = "";
+            document.getElementById("docImagePreviewContainer").innerHTML = ""; 
+            loadAllData(); 
+        });
         document.getElementById("submitEmployee")?.addEventListener("click", async () => { let name = document.getElementById("empName").value.trim(), position = document.getElementById("empPosition").value.trim(); if(!name || !position) { alert("Заполните имя и должность"); return; } await db.collection('employees').doc(Date.now().toString()).set({ name, position, photoUrl: document.getElementById("empPhotoUrl").value.trim() || null, icon: "👤" }); document.getElementById("empName").value = ""; document.getElementById("empPosition").value = ""; document.getElementById("empPhotoUrl").value = ""; document.getElementById("empPhotoPreview").innerHTML = ""; loadAllData(); });
         document.getElementById("newsImageUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("imagePreviewContainer").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
         document.getElementById("docImageUrl")?.addEventListener("input", (e) => { const url = e.target.value.trim(); document.getElementById("docImagePreviewContainer").innerHTML = url ? `<img src="${url}" class="image-preview">` : ""; });
@@ -2689,7 +2754,7 @@
     initUpdateMapModal();
     initImageViewer();
     initEditNewsModal();
-    initEditDocModal();  // новая инициализация модалки для документов
+    initEditDocModal();
     
     scheduleDailyRefresh();
     
