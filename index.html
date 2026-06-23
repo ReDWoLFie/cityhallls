@@ -356,7 +356,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Стиль для кнопки амнистии */
         .amnesty-btn {
             display: block;
             width: 100%;
@@ -438,7 +437,6 @@
         .login-btn { background: #2f6b2f; color: white; }
         .logout-btn { background: #9b2c2c; color: white; }
         
-        /* Оповещения */
         .notifications-wrapper {
             position: relative;
             display: inline-block;
@@ -508,7 +506,6 @@
             color: #94a3b8;
         }
         
-        /* Модальное окно для просмотра картинок */
         .image-viewer-modal {
             display: none;
             position: fixed;
@@ -651,7 +648,6 @@
             color: #94a3b8;
         }
         
-        /* Кнопка обновления карты */
         .update-map-btn {
             background: #4a6a8a;
             color: white;
@@ -742,6 +738,7 @@
             border-radius: 16px;
             border: 1px solid #e2e8f0;
             transition: all 0.2s;
+            position: relative;
         }
         .law-item:hover, .info-item:hover { border-color: #c9a87b; transform: translateX(5px); }
         .law-link, .info-link {
@@ -837,6 +834,65 @@
             background: none;
             border: none;
         }
+        .info-modal .admin-only {
+            display: none;
+        }
+        body.admin-mode .info-modal .admin-only {
+            display: inline-block;
+        }
+        #infoEditArea {
+            margin-top: 1rem;
+        }
+        #infoEditArea textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 0.8rem;
+            border-radius: 12px;
+            border: 1px solid #c9a87b;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        #infoEditArea .buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        #infoEditArea .buttons button {
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #infoEditToggleBtn {
+            margin-top: 1rem;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            background: #4a6a8a;
+            color: white;
+            font-weight: 600;
+        }
+        body.theme-gta #infoEditToggleBtn {
+            background: #f59e0b;
+            color: #0f1724;
+        }
+        body.theme-gta #infoEditArea textarea {
+            background: #0f1724;
+            border-color: #f59e0b;
+            color: #e2e8f0;
+        }
+        body.theme-gta #infoEditArea .buttons button {
+            background: #f59e0b;
+            color: #0f1724;
+        }
+        body.theme-gta #infoEditArea .buttons button#infoEditCancelBtn {
+            background: #dc2626;
+            color: white;
+        }
+        
         .price-modal {
             display: none;
             position: fixed;
@@ -1268,7 +1324,6 @@
         </div>
         <div class="card">
             <h2>📰 Новости мэрии</h2>
-            <!-- Блок добавления новостей для админа теперь вверху -->
             <div id="adminNewsBlock" class="admin-only">
                 <div class="add-news-form">
                     <h3>➕ Добавить новость</h3>
@@ -1280,7 +1335,6 @@
                     <button id="submitNews">📰 Опубликовать новость</button>
                 </div>
             </div>
-            <!-- Список новостей -->
             <div id="newsContainer" class="news-list"></div>
         </div>
         <div class="card">
@@ -1411,7 +1465,6 @@
     <div id="meeting" class="section">
         <div class="card">
             <h2>📝 Запись на личный приём</h2>
-            <!-- Новая кнопка амнистии -->
             <a href="https://forms.gle/mXbQM5bu6czHeLMCA" target="_blank" class="amnesty-btn">📜 Подать заявление об амнистии</a>
             
             <div class="meeting-form">
@@ -1490,6 +1543,22 @@
             <button id="editDocSave">Сохранить</button>
             <button id="editDocCancel" style="background: #9b2c2c; color: white;">Отмена</button>
         </div>
+    </div>
+</div>
+
+<!-- Модальное окно для отображения и редактирования информации -->
+<div id="infoModal" class="info-modal">
+    <div class="info-modal-content">
+        <button class="close-info-modal">&times;</button>
+        <div id="infoModalBody"></div>
+        <div id="infoEditArea" style="display: none;">
+            <textarea id="infoEditTextarea" rows="10" placeholder="Введите текст..."></textarea>
+            <div class="buttons">
+                <button id="infoEditSaveBtn" class="admin-only">💾 Сохранить</button>
+                <button id="infoEditCancelBtn" style="background: #9b2c2c; color: white;">Отмена</button>
+            </div>
+        </div>
+        <button id="infoEditToggleBtn" class="admin-only">✏️ Редактировать</button>
     </div>
 </div>
 
@@ -1585,13 +1654,6 @@
     </div>
 </div>
 
-<div id="infoModal" class="info-modal">
-    <div class="info-modal-content">
-        <button class="close-info-modal">&times;</button>
-        <div id="infoModalBody"></div>
-    </div>
-</div>
-
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <h3>🔐 Вход для администратора</h3>
@@ -1671,14 +1733,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ПАРОЛЬ АДМИНИСТРАТОРА (прямая проверка)
     const ADMIN_PASSWORD = "Admin351_LosSantos_2024!";
 
-    const infoTexts = {
+    // Дефолтные тексты для информации
+    const DEFAULT_INFO = {
         businessOwner: `<h3>🏪 Правила ведения бизнесов</h3><p><strong>1.</strong> Открываться не менее двух раз в неделю.</p><p><strong>2.</strong> В неделю бизнес должен быть открыт не менее 6 часов.</p><p><strong>3.</strong> Подача отчёта в Экономический отдел Мэрии обязательна в конце недели — не позднее понедельника, включая воскресенье. Премия будет вручена пяти наиболее активным бизнесам по итогам рассмотрения отчётов.</p><p><strong>4.</strong> Обязательное ведение социальных сетей – instapic или birdy.</p><p><strong>5.</strong> Переоформление бизнеса на другого человека составляет 5% от первоначальной стоимости бизнеса.</p><p><strong>6.</strong> В любой момент Экономический отдел может провести проверку бизнеса, согласно Законодательству штата.</p><p><strong>Ответственность за нарушения:</strong> В случае нарушения одного из пунктов заведению будет вынесено сначала предупреждение, на второй раз штраф в 25% от стоимости бизнеса, после изымается в руки государству.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`,
         smallBusiness: `<h3>🏢 Информация для малых частных предприятий</h3><h4>1. Правила подачи документов:</h4><ul><li>Расписать бизнес-план;</li><li>Расписать подробно сферу деятельности. Для детективных агентств и оказания охранных услуг обязательно: лицензия владения оружия, одобрение от правительства, справка от психолога, справка о несудимости;</li><li>Указать, кто будет являться работниками. Для совместных владельцев нужен будет доверенный документ и юридически подтверждённый;</li><li>Указать социальную сеть и обязательное ее ведение после одобрения и регистрации бизнеса. Если имеется готовый сайт, также указать его.</li></ul><h4>2. Проверка активности предприятия:</h4><ul><li>Социальная сеть;</li><li>Еженедельный отчет о проделанной работе.</li></ul><p>Если за предприятием не замечается активности – мэрия упраздняет предприятие, убирает с регистрации.</p><p>📞 В случае каких-либо вопросов оставляйте заявку на портале штата для консультации специалиста. Время рассмотрения от 1 до 3х дней.</p>`
     };
 
+    let infoData = { ...DEFAULT_INFO };
     let businessesData = [];
     let employees = [];
     let reviews = [];
@@ -1694,6 +1757,8 @@
     let pendingEditDocId = null;
     let unsubscribeFunctions = [];
     let privateOrgs = [];
+    let currentInfoKey = null; // для хранения текущего раздела в модалке
+    let infoEditMode = false; // режим редактирования информации
     
     let currentStatusFilter = "all";
     let currentTypeFilter = "all";
@@ -1800,7 +1865,7 @@
         
     }
     
-    // ========== АВТООБНОВЛЕНИЕ ССЫЛОК КАЖДЫЙ ДЕНЬ В 15:00 ==========
+    // ========== АВТООБНОВЛЕНИЕ ССЫЛОК ==========
     async function refreshAllImageLinks() {
         console.log('🔄 Начинаю перезапись ссылок на картинки...');
         let updatedCount = 0;
@@ -2160,6 +2225,146 @@
         setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 2000);
     }
     
+    // ========== ЗАГРУЗКА ИНФОРМАЦИИ ==========
+    async function loadInfoData() {
+        try {
+            const doc = await db.collection('settings').doc('businessInfo').get();
+            if (doc.exists) {
+                const data = doc.data();
+                infoData.businessOwner = data.businessOwner || DEFAULT_INFO.businessOwner;
+                infoData.smallBusiness = data.smallBusiness || DEFAULT_INFO.smallBusiness;
+            } else {
+                await db.collection('settings').doc('businessInfo').set(DEFAULT_INFO);
+                infoData = { ...DEFAULT_INFO };
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки информации:', e);
+            infoData = { ...DEFAULT_INFO };
+        }
+    }
+    
+    async function saveInfoData(businessOwner, smallBusiness) {
+        try {
+            await db.collection('settings').doc('businessInfo').set({
+                businessOwner: businessOwner,
+                smallBusiness: smallBusiness
+            }, { merge: true });
+            infoData.businessOwner = businessOwner;
+            infoData.smallBusiness = smallBusiness;
+            showToast('✅ Информация обновлена');
+        } catch (e) {
+            console.error('Ошибка сохранения информации:', e);
+            alert('Не удалось сохранить изменения. Проверьте консоль.');
+        }
+    }
+    
+    // ========== ИНИЦИАЛИЗАЦИЯ МОДАЛКИ ИНФОРМАЦИИ ==========
+    function initInfoModal() {
+        const modal = document.getElementById('infoModal');
+        const modalBody = document.getElementById('infoModalBody');
+        const closeBtn = modal.querySelector('.close-info-modal');
+        const editToggleBtn = document.getElementById('infoEditToggleBtn');
+        const editArea = document.getElementById('infoEditArea');
+        const textarea = document.getElementById('infoEditTextarea');
+        const saveBtn = document.getElementById('infoEditSaveBtn');
+        const cancelBtn = document.getElementById('infoEditCancelBtn');
+        
+        if (!modal || !modalBody) return;
+        
+        // Открытие модалки при клике на info-link
+        document.querySelectorAll('.info-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const infoKey = link.dataset.info;
+                if (!infoKey || !infoData[infoKey]) {
+                    modalBody.innerHTML = '<p>Информация не найдена</p>';
+                    modal.style.display = 'flex';
+                    return;
+                }
+                currentInfoKey = infoKey;
+                // Показываем текст, скрываем редактирование
+                modalBody.style.display = 'block';
+                modalBody.innerHTML = infoData[infoKey];
+                editArea.style.display = 'none';
+                infoEditMode = false;
+                editToggleBtn.textContent = '✏️ Редактировать';
+                modal.style.display = 'flex';
+            });
+        });
+        
+        // Закрытие
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            if (infoEditMode) {
+                // Если были в режиме редактирования, сбросим
+                modalBody.style.display = 'block';
+                editArea.style.display = 'none';
+                infoEditMode = false;
+                editToggleBtn.textContent = '✏️ Редактировать';
+            }
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                if (infoEditMode) {
+                    modalBody.style.display = 'block';
+                    editArea.style.display = 'none';
+                    infoEditMode = false;
+                    editToggleBtn.textContent = '✏️ Редактировать';
+                }
+            }
+        });
+        
+        // Кнопка редактирования
+        editToggleBtn.addEventListener('click', () => {
+            if (!currentInfoKey) return;
+            if (!infoEditMode) {
+                // Переключаем в режим редактирования
+                const currentText = infoData[currentInfoKey] || '';
+                textarea.value = currentText;
+                modalBody.style.display = 'none';
+                editArea.style.display = 'block';
+                infoEditMode = true;
+                editToggleBtn.textContent = '❌ Отменить редактирование';
+            } else {
+                // Отмена редактирования
+                modalBody.style.display = 'block';
+                editArea.style.display = 'none';
+                infoEditMode = false;
+                editToggleBtn.textContent = '✏️ Редактировать';
+            }
+        });
+        
+        // Сохранение
+        saveBtn.addEventListener('click', async () => {
+            if (!currentInfoKey) return;
+            const newText = textarea.value.trim();
+            if (!newText) {
+                alert('Текст не может быть пустым');
+                return;
+            }
+            // Обновляем в Firestore
+            const updatedData = { ...infoData };
+            updatedData[currentInfoKey] = newText;
+            await saveInfoData(updatedData.businessOwner, updatedData.smallBusiness);
+            // Обновляем отображение в модалке
+            modalBody.innerHTML = newText;
+            modalBody.style.display = 'block';
+            editArea.style.display = 'none';
+            infoEditMode = false;
+            editToggleBtn.textContent = '✏️ Редактировать';
+            // Обновим также и в infoData (уже обновлено через saveInfoData)
+        });
+        
+        // Отмена (закрывает редактирование без сохранения)
+        cancelBtn.addEventListener('click', () => {
+            modalBody.style.display = 'block';
+            editArea.style.display = 'none';
+            infoEditMode = false;
+            editToggleBtn.textContent = '✏️ Редактировать';
+        });
+    }
+    
+    // ========== ПОДКЛЮЧЕНИЕ СЛУШАТЕЛЕЙ ==========
     function setupRealtimeListeners() {
         if (unsubscribeFunctions.length) { unsubscribeFunctions.forEach(unsub => unsub()); unsubscribeFunctions = []; }
         unsubscribeFunctions.push(db.collection('businesses').onSnapshot(() => loadAllData()));
@@ -2171,6 +2376,7 @@
         unsubscribeFunctions.push(db.collection('privateOrgs').onSnapshot(() => { if (document.getElementById('privateOrgList')?.style.display === 'block') loadPrivateOrgs(); }));
     }
     
+    // ========== ЗАГРУЗКА ВСЕХ ДАННЫХ ==========
     async function loadAllData() {
         const businessesSnapshot = await db.collection('businesses').get();
         businessesData = [];
@@ -2211,12 +2417,14 @@
             }); 
         });
         
+        await loadInfoData();
         renderAll();
         updateNotifications();
     }
     
     function renderAll() { renderBusiness(); renderReviews(); renderNews(); renderMeetings(); renderDocuments(); renderEmployees(); updateStats(); }
     
+    // ========== РЕНДЕРИНГ БИЗНЕСОВ ==========
     function renderBusiness() {
         const grid = document.getElementById("businessGrid");
         if(!grid) return;
@@ -2318,7 +2526,6 @@
         }
     }
     
-    // Функция для преобразования ссылок в тексте
     function convertUrlsToLinks(text) {
         if (!text) return '';
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -2441,7 +2648,6 @@
         });
     }
     
-    // Редактирование документа
     function initEditDocModal() {
         const modal = document.getElementById('editDocModal');
         const saveBtn = document.getElementById('editDocSave');
@@ -2576,13 +2782,6 @@
     }
     
     function updateStats() { document.getElementById("totalBusiness").innerText = businessesData.length; document.getElementById("freeBusinessCount").innerText = businessesData.filter(b => b.status === "free").length; document.getElementById("reviewCount").innerText = reviews.length; }
-    
-    function initInfoModal() {
-        const modal = document.getElementById("infoModal"), modalBody = document.getElementById("infoModalBody"), closeBtn = modal.querySelector(".close-info-modal");
-        document.querySelectorAll('.info-link').forEach(link => link.addEventListener("click", () => { const infoKey = link.dataset.info; if(infoKey && infoTexts[infoKey]) { modalBody.innerHTML = infoTexts[infoKey]; modal.style.display = "flex"; } }));
-        closeBtn.addEventListener("click", () => modal.style.display = "none");
-        modal.addEventListener("click", (e) => { if(e.target === modal) modal.style.display = "none"; });
-    }
     
     function initPriceModal() {
         const modal = document.getElementById("priceModal"), saveBtn = document.getElementById("priceModalSave"), cancelBtn = document.getElementById("priceModalCancel");
@@ -2736,34 +2935,39 @@
     }
     
     // ========== ЗАПУСК ==========
-    setupRealtimeListeners();
-    loadAllData();
-    setupForms();
-    initNavigation();
-    initInfoModal();
-    initPriceModal();
-    initChangeImageModal();
-    initChangeEmployeePhotoModal();
-    initAddBusinessModal();
-    initMeetingForm();
-    initFilters();
-    initTheme();
-    initPrivateOrgToggle();
-    initAddOrgModal();
-    initReplyModal();
-    initUpdateMapModal();
-    initImageViewer();
-    initEditNewsModal();
-    initEditDocModal();
+    async function init() {
+        await loadInfoData();
+        setupRealtimeListeners();
+        await loadAllData();
+        setupForms();
+        initNavigation();
+        initInfoModal();
+        initPriceModal();
+        initChangeImageModal();
+        initChangeEmployeePhotoModal();
+        initAddBusinessModal();
+        initMeetingForm();
+        initFilters();
+        initTheme();
+        initPrivateOrgToggle();
+        initAddOrgModal();
+        initReplyModal();
+        initUpdateMapModal();
+        initImageViewer();
+        initEditNewsModal();
+        initEditDocModal();
+        
+        scheduleDailyRefresh();
+        
+        if(sessionStorage.getItem("adminMode") === "true") setAdminMode(true);
+        
+        document.getElementById("loginModalBtn")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "flex");
+        document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
+        document.getElementById("closeModal")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "none");
+        window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) document.getElementById("loginModal").style.display = "none"; });
+    }
     
-    scheduleDailyRefresh();
-    
-    if(sessionStorage.getItem("adminMode") === "true") setAdminMode(true);
-    
-    document.getElementById("loginModalBtn")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "flex");
-    document.getElementById("confirmLogin")?.addEventListener("click", checkAdminLogin);
-    document.getElementById("closeModal")?.addEventListener("click", () => document.getElementById("loginModal").style.display = "none");
-    window.addEventListener("click", (e) => { if(e.target === document.getElementById("loginModal")) document.getElementById("loginModal").style.display = "none"; });
+    init();
 </script>
 </body>
 </html>
